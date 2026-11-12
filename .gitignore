@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 依赖装在本地，不入库
+应用/vendor/
+
+# 运行时数据库
+应用/data/echo.db
+应用/data/echo.db-journal
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时构建产物
+构建/_*.docx
+构建/_*.pdf
+构建/prev*/
+构建/qa*/

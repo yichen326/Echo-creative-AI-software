@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>回声 Echo · 设计图</title>
+<style>
+:root{
+  --paper:#FAF7F1; --ink:#1F1D1A; --ink2:#565049; --ink3:#8E877C;
+  --line:#E4DED2; --green:#2E5D4E; --green2:#417D68; --gs:#EAF1EC;
+  --red:#C9502B; --rs:#FBEAE4; --amber:#BE8320; --as:#FAF0DA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1200px;background:#fff}
+body{font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;color:var(--ink)}
+.frame{width:1200px;padding:38px 42px 30px;display:none;position:relative}
+.frame.on{display:block}
+h2{font-family:"Songti SC","SimSun",serif;font-size:25px;font-weight:700;letter-spacing:.5px}
+.sub{font-size:12.5px;color:var(--ink3);margin-top:5px;letter-spacing:.3px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:24px}
+body.flat .head{display:none}
+body.flat .frame{padding-top:10px}
+.fno{font-family:Georgia,serif;font-size:12px;color:var(--ink3);letter-spacing:1px}
+
+/* ---------- F1 架构 ---------- */
+.layer{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:stretch;margin-bottom:12px}
+.ltag{display:flex;flex-direction:column;justify-content:center;align-items:center;border-right:2px solid var(--line);font-size:13px;font-weight:700;color:var(--green);letter-spacing:2px;line-height:1.4}
+.ltag small{display:block;font-size:10px;color:var(--ink3);letter-spacing:0;font-weight:400;margin-top:3px}
+.lbox{display:flex;gap:9px;flex-wrap:wrap;align-content:center;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 14px;min-height:60px}
+.layer:nth-child(3) .lbox{background:#F1F6F3;border-color:#CBDDD3}
+.layer:nth-child(4) .lbox{background:#FDF6EC;border-color:#EADCC0}
+.pill{background:#fff;border:1px solid #DCD5C8;border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink2);white-space:nowrap}
+.pill.dark{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.pill.model{background:#fff;border-color:var(--green);color:var(--green);border-style:dashed}
+.arrow-down{text-align:center;color:#C3B9A8;font-size:11px;line-height:1;margin:-2px 0 8px 112px;letter-spacing:6px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.mode{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:11.5px;color:var(--ink2);line-height:1.65}
+.mode b{display:block;font-size:12.5px;color:var(--green);margin-bottom:4px}
+.note{margin-top:16px;font-size:11.5px;color:var(--ink3);display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.note b{color:var(--green)}
+
+/* ---------- F2 流水线 ---------- */
+.pipe{display:flex;align-items:stretch;gap:0;margin-top:6px}
+.step{flex:1;position:relative;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 13px 13px;margin-right:22px}
+.step:last-child{margin-right:0}
+.step:after{content:"›";position:absolute;right:-16px;top:50%;transform:translateY(-52%);font-size:22px;color:#BDB3A2}
+.step:last-child:after{display:none}
+.sn{font-family:Georgia,serif;font-size:11px;color:var(--red);letter-spacing:1px;font-weight:700}
+.st{font-size:13.5px;font-weight:700;margin:5px 0 7px}
+.sk{font-size:11.5px;color:var(--ink2);line-height:1.55;min-height:54px}
+.si{margin-top:8px;padding-top:7px;border-top:1px dashed #DDD5C6;font-size:10.5px;color:var(--ink3)}
+.si b{color:var(--green);font-weight:600}
+.formula{margin-top:22px;background:#F6F2E9;border-left:3px solid var(--green);padding:13px 18px;border-radius:0 8px 8px 0;font-size:12.5px;color:var(--ink2);line-height:1.9}
+.formula code{font-family:Consolas,monospace;color:var(--green);font-size:12.5px}
+
+/* ---------- F4 功能树 ---------- */
+.tree{display:grid;grid-template-columns:180px 200px 1fr;gap:0;margin-top:4px}
+.root-cell{display:flex;align-items:center}
+.root{width:150px;height:150px;border-radius:50%;background:var(--green);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 26px -14px rgba(46,93,78,.8)}
+.root b{font-family:"Songti SC",serif;font-size:25px;letter-spacing:2px}
+.root span{font-size:10px;letter-spacing:2px;opacity:.8;margin-top:4px}
+.mods{display:flex;flex-direction:column;justify-content:space-between;padding:2px 0}
+.mod{background:var(--gs);border:1px solid #CCDFD4;border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:700;color:var(--green);position:relative}
+.mod:before{content:"";position:absolute;left:-18px;top:50%;width:18px;height:1px;background:#CFC7B8}
+.feats{display:flex;flex-direction:column;justify-content:space-between;padding:2px 0}
+.fea{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--ink2);padding:9px 0 9px 4px;line-height:1.5}
+.fea i{font-style:normal;color:var(--amber);font-size:9px;margin-top:4px}
+.lanes{display:flex;gap:12px;margin-top:26px}
+.lane{flex:1;background:#F6F2E9;border-radius:10px;padding:13px 16px;font-size:11.5px;color:var(--ink2);line-height:1.75}
+.lane b{color:var(--green)}
+
+/* ---------- F3 graph ---------- */
+.graphwrap{background:#FCFAF5;border:1px solid var(--line);border-radius:14px;padding:6px}
+.graphwrap text{font-family:"Microsoft YaHei",sans-serif}
+.notes{display:flex;gap:14px;margin-top:14px}
+.note2{flex:1;font-size:11.5px;color:var(--ink2);line-height:1.85;padding:2px 0 2px 14px}
+
+body.big .pill{font-size:18px;padding:9px 15px;border-radius:10px}
+body.big .ltag{font-size:19px;letter-spacing:3px}
+body.big .ltag small{font-size:14px}
+body.big .lbox{padding:16px 18px;gap:11px}
+body.big .mode{font-size:16px;line-height:1.7}
+body.big .mode b{font-size:18px}
+body.big .note{font-size:15px}
+body.big .sn{font-size:14px}
+body.big .st{font-size:19px}
+body.big .sk{font-size:16px;min-height:0;line-height:1.65}
+body.big .si{font-size:14px}
+body.big .formula{font-size:16px;line-height:2}
+body.big .formula code{font-size:16px}
+body.big .step{padding:18px 16px}
+body.big .mod{font-size:19px;padding:14px 14px}
+body.big .fea{font-size:16px;line-height:1.55;padding:10px 4px}
+body.big .lane{font-size:16px;line-height:1.8}
+body.big .root b{font-size:34px}
+body.big .root span{font-size:12px}
+
+body.big .ltag{padding-right:6px}
+body.big .step{display:flex;flex-direction:column}
+body.big .si{margin-top:auto}
+body.big .tree{grid-template-columns:200px 230px 1fr}
+</style>
+</head>
+<body>
+
+<!-- ============ F1 ============ -->
+<div class="frame" id="f1">
+  <div class="head"><div><h2>图 1　回声 Echo 系统架构</h2><div class="sub">四层单体结构 · 单机可运行 · 无 GPU 依赖</div></div><div class="fno">SYSTEM ARCHITECTURE</div></div>
+
+  <div class="layer"><div class="ltag">交互层<small>Browser</small></div>
+    <div class="lbox">
+      <span class="pill dark">讲解台</span><span class="pill">体检报告</span><span class="pill">知识地图</span>
+      <span class="pill">复习计划</span><span class="pill">成长档案</span><span class="pill model">Web Speech 语音输入</span>
+    </div></div>
+  <div class="arrow-down">▼ ▼ ▼</div>
+
+  <div class="layer"><div class="ltag">服务层<small>FastAPI</small></div>
+    <div class="lbox">
+      <span class="pill dark">REST 路由</span><span class="pill">讲解会话管理</span><span class="pill">诊断任务队列</span>
+      <span class="pill">SQLite 档案</span><span class="pill">静态资源托管</span>
+    </div></div>
+  <div class="arrow-down">▼ ▼ ▼</div>
+
+  <div class="layer"><div class="ltag">算法层<small>Engine</small></div>
+    <div class="lbox">
+      <span class="pill dark">① 文本清洗与切分</span><span class="pill dark">② 概念覆盖匹配</span><span class="pill dark">③ 迷思检测</span>
+      <span class="pill dark">④ 根因溯源</span><span class="pill dark">⑤ 追问生成</span><span class="pill dark">⑥ 记忆调度</span>
+    </div></div>
+  <div class="arrow-down">▼ ▼ ▼</div>
+
+  <div class="layer"><div class="ltag">资产层<small>Assets</small></div>
+    <div class="lbox">
+      <span class="pill">知识图谱 · 110 节点</span><span class="pill">断言单元 · 800 条</span><span class="pill">迷思库 · 120 条</span>
+      <span class="pill">探针库 · 400 条</span><span class="pill">学生掌握度档案</span>
+      <span class="pill model">bge-small-zh 24MB</span><span class="pill model">qwen2.5:3b（可选）</span>
+    </div></div>
+
+  <div class="modes">
+    <div class="mode"><b>单机模式</b>一台笔记本 + 一条命令，离线可用；适合家庭自学与机房。</div>
+    <div class="mode"><b>班级模式</b>教师机部署，局域网 40 人并发；无外网也能上课。</div>
+    <div class="mode"><b>可选增强</b>接入本地 3B 模型或云端 API，提升追问的自然度。</div>
+  </div>
+  <div class="note"><b>本地优先</b>　模型与数据均驻留本机，音频转写后即弃，不出设备</div>
+</div>
+
+<!-- ============ F2 ============ -->
+<div class="frame" id="f2">
+  <div class="head"><div><h2>图 2　讲述式认知诊断流水线</h2><div class="sub">从一段口语讲解，到一份可解释的能力报告</div></div><div class="fno">DIAGNOSTIC PIPELINE</div></div>
+
+  <div class="pipe">
+    <div class="step"><div class="sn">STAGE 01</div><div class="st">语音转写与切分</div>
+      <div class="sk">浏览器端 ASR，按停顿与连接词把讲解切成「讲述单元」。</div>
+      <div class="si">输出 → <b>S = {s₁…sₘ}</b></div></div>
+    <div class="step"><div class="sn">STAGE 02</div><div class="st">概念覆盖匹配</div>
+      <div class="sk">句向量编码后与断言单元做最大权二分匹配，判定「讲到 / 带过 / 漏讲」。</div>
+      <div class="si">算 法 → <b>匈牙利算法 O(n³)</b></div></div>
+    <div class="step"><div class="sn">STAGE 03</div><div class="st">迷思检测</div>
+      <div class="sk">迷思库近邻 + 语言规则 + 轻量分类器，三路投票识别「讲反了」。</div>
+      <div class="si">输出 → <b>迷思命中集 M*</b></div></div>
+    <div class="step"><div class="sn">STAGE 04</div><div class="st">根因溯源</div>
+      <div class="sk">沿知识图谱前驱闭包反推，定位真正卡住的底层概念。</div>
+      <div class="si">算 法 → <b>BKT + 衰减传播</b></div></div>
+    <div class="step"><div class="sn">STAGE 05</div><div class="st">追问生成</div>
+      <div class="sk">从探针池按信息增益挑选，再改写为一句自然的口语追问。</div>
+      <div class="si">算 法 → <b>主动学习</b></div></div>
+    <div class="step"><div class="sn">STAGE 06</div><div class="st">记忆调度</div>
+      <div class="sk">把讲述质量当作复习等级，生成下一次复述时间。</div>
+      <div class="si">算 法 → <b>FSRS 间隔重复</b></div></div>
+  </div>
+
+  <div class="formula">
+    <b>根因得分</b>　<code>R(u) = (1 − P(L<sub>u</sub>)) × Σ<sub>p∈Path(u→k)</sub> γ<sup>len(p)</sup> · w(p)</code>　，取 Top-3 构成「根因链」；同生前序讲解已讲对的概念作为<b>反事实证据</b>参与降权 —— 让「不是你不够细，是你八上就没学扎实」这句话有据可依。
+  </div>
+</div>
+
+<!-- ============ F4 ============ -->
+<div class="frame" id="f4">
+  <div class="head"><div><h2>图 4　系统功能架构</h2><div class="sub">五个模块围绕一条主线：讲 → 诊断 → 溯源 → 复述</div></div><div class="fno">FUNCTION MAP</div></div>
+
+  <div class="tree">
+    <div class="root-cell"><div class="root"><b>回声</b><span>ECHO</span></div></div>
+    <div class="mods">
+      <div class="mod">① 讲解台</div>
+      <div class="mod">② 诊断报告</div>
+      <div class="mod">③ 知识地图</div>
+      <div class="mod">④ 复述计划</div>
+      <div class="mod">⑤ 成长档案</div>
+    </div>
+    <div class="feats">
+      <div class="fea"><i>◆</i><span>选知识点 · 语音/文字讲述 · 实时字幕 · 中途追问 · 计时与提示</span></div>
+      <div class="fea"><i>◆</i><span>六维评分 · 覆盖清单 · 迷思对照 · 根因链 · 复述建议 · 一键加卡</span></div>
+      <div class="fea"><i>◆</i><span>依赖图谱 · 掌握度着色 · 前驱/后继 · 点击跳讲 · 薄弱路径高亮</span></div>
+      <div class="fea"><i>◆</i><span>今日队列 · 间隔调度 · 复述倒计时 · 七日安排 · 跳过与顺延</span></div>
+      <div class="fea"><i>◆</i><span>评分趋势 · 能力标签 · 讲述录音回放 · 周报 · 家长只读视图</span></div>
+    </div>
+  </div>
+
+  <div class="lanes">
+    <div class="lane"><b>主线一｜学生</b>　选点 → 讲 → 看报告 → 顺着根因链回到旧知识 → 明天复述一次</div>
+    <div class="lane"><b>主线二｜教师</b>　布置「讲解作业」 → 看班级根因热力 → 下一节课只讲三个共性卡点</div>
+  </div>
+</div>
+
+<!-- ============ F3 ============ -->
+<div class="frame" id="f3">
+  <div class="head"><div><h2>图 3　根因链示意：他卡住的不是浮力</h2><div class="sub">九年级《阿基米德原理》讲述失败 → 反推至八年级「密度测量」</div></div><div class="fno">ROOT-CAUSE TRACING</div></div>
+
+  <div class="graphwrap">
+  <svg width="1104" height="512" viewBox="0 0 1104 512">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#C9C1B2"/></marker>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#C9502B"/></marker>
+    </defs>
+
+    <!-- edges -->
+    <path d="M188,132 C250,132 250,132 300,132" stroke="#C9C1B2" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+    <path d="M188,132 C250,132 250,300 300,300" stroke="#C9C1B2" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+    <path d="M470,132 C530,132 530,222 592,222" stroke="#C9502B" stroke-width="2.2" fill="none" marker-end="url(#ar)" stroke-dasharray="7 5"/>
+    <path d="M470,300 C530,300 530,222 592,222" stroke="#C9C1B2" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+    <path d="M188,434 C600,470 780,388 852,326" stroke="#C9C1B2" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+    <path d="M762,222 C830,222 830,282 856,300" stroke="#C9C1B2" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+    <path d="M762,222 C840,222 840,404 856,434" stroke="#C9C1B2" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+
+    <g>
+      <rect x="38" y="100" width="150" height="64" rx="12" fill="#fff" stroke="#D6CFC0"/>
+      <text x="113" y="127" text-anchor="middle" font-size="13.5" fill="#1F1D1A" font-weight="600">质量与密度</text>
+      <text x="113" y="147" text-anchor="middle" font-size="11" fill="#417D68">已掌握 · 0.86</text>
+    </g>
+    <g>
+      <rect x="300" y="100" width="170" height="64" rx="12" fill="#FAF0DA" stroke="#BE8320"/>
+      <text x="385" y="127" text-anchor="middle" font-size="13.5" fill="#1F1D1A" font-weight="600">密度测量（排水法）</text>
+      <text x="385" y="147" text-anchor="middle" font-size="11" fill="#BE8320">模糊 · 0.55　◆ 根因</text>
+    </g>
+    <g>
+      <rect x="300" y="268" width="170" height="64" rx="12" fill="#fff" stroke="#D6CFC0"/>
+      <text x="385" y="295" text-anchor="middle" font-size="13.5" fill="#1F1D1A" font-weight="600">液体压强 p=ρgh</text>
+      <text x="385" y="315" text-anchor="middle" font-size="11" fill="#417D68">已掌握 · 0.79</text>
+    </g>
+    <g>
+      <rect x="38" y="402" width="150" height="64" rx="12" fill="#FAF0DA" stroke="#BE8320"/>
+      <text x="113" y="429" text-anchor="middle" font-size="13.5" fill="#1F1D1A" font-weight="600">二力平衡</text>
+      <text x="113" y="449" text-anchor="middle" font-size="11" fill="#BE8320">模糊 · 0.61　◆ 根因</text>
+    </g>
+    <g>
+      <rect x="592" y="186" width="170" height="72" rx="13" fill="#C9502B" stroke="#A63F20"/>
+      <text x="677" y="216" text-anchor="middle" font-size="14.5" fill="#fff" font-weight="700">阿基米德原理</text>
+      <text x="677" y="237" text-anchor="middle" font-size="11" fill="#FFD9CB">本次讲述 · 0.34</text>
+    </g>
+    <g>
+      <rect x="856" y="268" width="170" height="64" rx="12" fill="#fff" stroke="#D6CFC0" stroke-dasharray="5 4"/>
+      <text x="941" y="295" text-anchor="middle" font-size="13.5" fill="#1F1D1A" font-weight="600">物体浮沉条件</text>
+      <text x="941" y="315" text-anchor="middle" font-size="11" fill="#B0A897">空白 · 0.08</text>
+    </g>
+    <g>
+      <rect x="856" y="402" width="170" height="64" rx="12" fill="#fff" stroke="#D6CFC0" stroke-dasharray="5 4"/>
+      <text x="941" y="429" text-anchor="middle" font-size="13.5" fill="#1F1D1A" font-weight="600">浮力综合计算</text>
+      <text x="941" y="449" text-anchor="middle" font-size="11" fill="#B0A897">空白 · 0.05</text>
+    </g>
+
+    <text x="492" y="216" font-size="11" fill="#C9502B" font-weight="600">R = 0.82</text>
+    <text x="500" y="80" font-size="10.5" fill="#8E877C">依赖路径 · 衰减 γ = 0.75</text>
+
+    <g transform="translate(38,486)">
+      <circle cx="6" cy="6" r="5" fill="#417D68"/><text x="18" y="10" font-size="11" fill="#565049">已掌握</text>
+      <circle cx="92" cy="6" r="5" fill="#BE8320"/><text x="104" y="10" font-size="11" fill="#565049">模糊</text>
+      <circle cx="174" cy="6" r="5" fill="#C9502B"/><text x="186" y="10" font-size="11" fill="#565049">未掌握</text>
+      <circle cx="256" cy="6" r="5" fill="#fff" stroke="#C0B8A8" stroke-dasharray="3 2"/><text x="268" y="10" font-size="11" fill="#565049">未学习</text>
+    </g>
+  </svg>
+  </div>
+
+  <div class="notes">
+    <div class="note2" style="border-left:3px solid #C9502B">报告不会说「你没掌握阿基米德原理」，而是说：<b style="color:#C9502B">你在用「密度」解释「排开体积」时含糊了</b> —— 这是八年级「排水法测体积」的遗留问题。</div>
+    <div class="note2" style="border-left:3px solid #BE8320">同时命中迷思 <b style="color:#BE8320">M-17「浮力随深度增大」</b>，与「液体压强」概念发生混淆。</div>
+  </div>
+</div>
+
+<script>
+  if (location.search.indexOf('flat') >= 0) document.body.classList.add('flat');
+  if (location.search.indexOf('big') >= 0) document.body.classList.add('big');
+  const id = (location.hash || '#f1').slice(1);
+  const el = document.getElementById(id) || document.getElementById('f1');
+  el.classList.add('on');
+</script>
+</body>
+</html>

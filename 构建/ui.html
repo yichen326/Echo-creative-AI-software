@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>回声 Echo · 界面设计稿</title>
+<style>
+:root{
+  --paper:#FAF7F1; --ink:#1F1D1A; --ink2:#565049; --ink3:#918A7F;
+  --line:#E7E1D5; --line2:#F0EBE1; --green:#2E5D4E; --green2:#417D68; --gs:#EAF1EC;
+  --red:#C9502B; --rs:#FBEAE4; --amber:#BE8320; --as:#FAF0DA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1200px;background:#fff}
+body{font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;color:var(--ink);font-size:12px;-webkit-font-smoothing:antialiased}
+.frame{width:1200px;height:760px;display:none;overflow:hidden}
+.frame.on{display:block}
+.app{display:flex;height:760px;background:var(--paper)}
+
+/* sidebar */
+.sb{width:206px;flex:0 0 206px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 13px 14px}
+.brand{display:flex;align-items:center;gap:9px;padding:2px 6px 20px}
+.brand b{font-family:"Songti SC","SimSun",serif;font-size:19px;letter-spacing:2px}
+.brand span{font-family:Georgia,serif;font-size:9px;color:var(--ink3);letter-spacing:2px}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font-size:12.5px;color:#6C665B;margin-bottom:3px}
+.nv svg{width:15px;height:15px;flex:0 0 15px}
+.nv.on{background:var(--green);color:#fff;font-weight:600}
+.sbl{margin:16px 10px 6px;font-size:9.5px;color:#B4AC9E;letter-spacing:1.5px}
+.goal{margin:6px 8px;background:var(--paper);border-radius:9px;padding:10px 11px}
+.goal .gt{font-size:10.5px;color:var(--ink2);display:flex;justify-content:space-between}
+.goal .gb{height:4px;border-radius:3px;background:#E6DFD1;margin-top:7px;overflow:hidden}
+.goal .gb i{display:block;height:100%;width:60%;background:var(--green)}
+.usr{margin-top:auto;display:flex;align-items:center;gap:9px;padding:9px 8px;border-top:1px solid var(--line2)}
+.av{width:28px;height:28px;border-radius:50%;background:var(--gs);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.usr .un{font-size:11.5px;font-weight:600}
+.usr .uc{font-size:10px;color:var(--ink3)}
+
+/* main */
+.mn{flex:1;padding:24px 28px;display:flex;flex-direction:column;overflow:hidden}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.ph .eyebrow{font-size:10px;color:var(--ink3);letter-spacing:.8px}
+.ph h1{font-family:"Songti SC","SimSun",serif;font-size:23px;letter-spacing:.5px;margin-top:2px;font-weight:700}
+.ph .sub{font-size:11.5px;color:var(--ink3);margin-top:3px}
+.bt{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;font-size:11.5px;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
+.bt.p{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.bt.s{background:transparent}
+.c{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 16px}
+.ct{font-size:11.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px}
+.ct .more{margin-left:auto;font-size:10.5px;color:var(--ink3);font-weight:400}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;padding:3px 8px;border-radius:999px;background:var(--gs);color:var(--green);border:1px solid #D5E3DB;white-space:nowrap}
+.tag.r{background:var(--rs);color:var(--red);border-color:#F0D2C7}
+.tag.a{background:var(--as);color:var(--amber);border-color:#EBD9B7}
+
+/* W1 */
+.hero{display:flex;background:linear-gradient(118deg,#2E5D4E 0%,#254a3d 60%,#204035 100%);border-radius:15px;padding:22px 24px;color:#F4F1E9;position:relative;overflow:hidden;margin-bottom:14px}
+.hero .h1t{font-family:"Songti SC",serif;font-size:25px;letter-spacing:1px;margin:8px 0 6px}
+.hero .hp{font-size:11.5px;color:#C6D6CD;line-height:1.7;max-width:430px}
+.hero .hbtn{margin-top:14px;display:flex;gap:9px;align-items:center}
+.hero .hbtn b{background:#F4F1E9;color:#224438;padding:8px 15px;border-radius:9px;font-size:11.5px}
+.hero .hbtn span{font-size:10.5px;color:#9FB8AC}
+.hero .art{position:absolute;right:-30px;top:-40px;opacity:.9}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.st{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.st .n{font-family:"Songti SC",serif;font-size:24px;line-height:1;color:var(--green)}
+.st .l{font-size:10.5px;color:var(--ink3);margin-top:7px;display:flex;align-items:center;gap:5px}
+.st .l em{font-style:normal;color:var(--red)}
+.grid2{display:grid;grid-template-columns:1.18fr 1fr;gap:12px;flex:1;min-height:0}
+.row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line2)}
+.row:last-child{border-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+.dr{background:var(--red)}.da{background:var(--amber)}.dg{background:var(--green2)}.dn{background:#DAD3C5}
+.rw{flex:1;min-width:0}
+.rw .t{font-size:11.5px;font-weight:600}
+.rw .s{font-size:9.5px;color:var(--ink3);margin-top:2px}
+.bar{width:74px;height:4px;border-radius:3px;background:#EFEAE0;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+.mini{display:flex;align-items:center;gap:8px;margin-top:12px}
+.mn-node{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 7px;text-align:center;font-size:10px;line-height:1.4}
+.mn-node b{display:block;font-size:10.5px;margin-bottom:2px}
+.mn-node.a{background:var(--as);border-color:#E7D3AC}
+.mn-node.r{background:var(--rs);border-color:#EFC9BC;color:var(--red)}
+
+/* W2 */
+.exp{display:grid;grid-template-columns:1fr 258px;gap:13px;flex:1;min-height:0}
+.stage{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px 22px;display:flex;flex-direction:column;position:relative}
+.krec{display:flex;gap:8px;align-items:center;margin-bottom:16px}
+.who{display:flex;align-items:center;gap:9px}
+.face{width:34px;height:34px;border-radius:50%;background:var(--gs);position:relative;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green);font-weight:700}
+.who .wt{font-size:11.5px;font-weight:700}
+.who .ws{font-size:10px;color:var(--green2)}
+.wave{display:flex;align-items:center;gap:3px;height:26px}
+.wave i{width:3px;border-radius:2px;background:var(--green2);opacity:.75}
+.tr{overflow:hidden;padding-top:6px}
+.tl{font-size:12px;line-height:1.95;color:var(--ink2);margin-bottom:2px;display:flex;gap:9px}
+.tl .tm{font-family:Georgia,serif;font-size:9.5px;color:#BDB5A6;flex:0 0 32px;padding-top:3px}
+.tl.act{color:var(--ink);background:linear-gradient(90deg,#F7F3EA,transparent);border-radius:6px;padding:2px 6px;margin-left:-6px}
+.tl.act .tx{border-bottom:1.5px solid #E3C9B4}
+.tl .tx{flex:1}
+.cur{display:inline-block;width:1.5px;height:13px;background:var(--red);vertical-align:-2px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.ctl{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line2)}
+.bigrec{width:46px;height:46px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -6px rgba(201,80,43,.7)}
+.bigrec i{width:14px;height:14px;background:#fff;border-radius:3px;display:block}
+.tmr{font-family:Georgia,serif;font-size:13px;color:var(--ink2);letter-spacing:.5px}
+.rail{display:flex;flex-direction:column;gap:11px;min-height:0}
+.bub{background:#fff;border:1px solid var(--line);border-radius:12px 12px 12px 3px;padding:10px 12px;font-size:11px;line-height:1.65;color:var(--ink2);position:relative}
+.bub b{color:var(--ink);font-weight:600}
+.bub .bst{font-size:9px;color:var(--ink3);margin-top:6px;display:flex;gap:6px;align-items:center}
+.hint{background:#FDFBF4;border:1px dashed #E0D5BC;border-radius:12px;padding:11px 13px;font-size:10.5px;color:var(--ink2);line-height:1.75}
+.hint b{color:var(--amber)}
+
+/* W3 */
+.rp{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
+.score{display:flex;gap:16px;align-items:center}
+.ringt{text-align:center}
+.ringt .sv{font-family:"Songti SC",serif;font-size:26px;color:var(--green);line-height:1}
+.ringt .sl{font-size:9.5px;color:var(--ink3);margin-top:3px}
+.dims{display:flex;flex-direction:column;gap:5px}
+.dm{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--ink2)}
+.dm span{width:52px;text-align:right;color:var(--ink3)}
+.dm .db{flex:1;height:4px;background:#F0EBE1;border-radius:3px;overflow:hidden}
+.dm .db i{display:block;height:100%;background:var(--green);border-radius:3px}
+.ck{display:flex;flex-wrap:wrap;gap:5px}
+.ck span{font-size:9.5px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--ink2);background:#FCFAF5}
+.ck .ok{background:var(--gs);border-color:#D3E2D9;color:var(--green)}
+.ck .no{background:var(--rs);border-color:#F0CFC3;color:var(--red)}
+.chain{display:flex;align-items:center;gap:6px;margin-top:10px}
+.ch{flex:1;text-align:center;border-radius:9px;padding:8px 4px;font-size:10px;border:1px solid var(--line);background:#FCFAF5;line-height:1.35}
+.ch b{display:block;font-size:10.5px;margin-bottom:2px}
+.ch.a{background:var(--as);border-color:#E7D3AC}
+.ch.r{background:var(--red);border-color:var(--red);color:#fff}
+.ch.r b{color:#fff}
+.ch.n{color:#B0A897;border-style:dashed}
+.arw{color:#C4BBAA;font-size:12px}
+.sug{display:flex;gap:9px;padding:7px 0;border-bottom:1px dashed var(--line2);font-size:10.5px;line-height:1.6;color:var(--ink2)}
+.sug:last-child{border:0}
+.sug b{flex:0 0 15px;height:15px;border-radius:50%;background:var(--gs);color:var(--green);font-size:9px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+
+/* W4 */
+.mapp{display:flex;gap:12px;flex:1;min-height:0}
+.mapc{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;position:relative;overflow:hidden}
+.side{width:248px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px;display:flex;flex-direction:column}
+.lg{position:absolute;left:14px;bottom:12px;display:flex;gap:12px;font-size:9.5px;color:var(--ink2)}
+.lg i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+
+/* W5 */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;margin-top:4px}
+.day{border:1px solid var(--line);border-radius:10px;padding:9px 8px;min-height:120px;background:#FCFAF5}
+.day.on{border-color:var(--green);background:#fff;box-shadow:0 4px 12px -8px rgba(46,93,78,.6)}
+.day .dn2{font-size:9.5px;color:var(--ink3)}
+.day .dd{font-family:Georgia,serif;font-size:14px;margin:2px 0 7px}
+.day .it{font-size:9px;padding:4px 6px;border-radius:5px;margin-bottom:4px;line-height:1.35}
+.it.g{background:var(--gs);color:var(--green)}
+.it.r{background:var(--rs);color:var(--red)}
+.it.a{background:var(--as);color:var(--amber)}
+.it.n{background:#F1ECE2;color:#8D8676}
+
+/* W6 */
+.spark{width:100%;height:100%}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tg{font-size:9.5px;padding:4px 9px;border-radius:999px;background:var(--paper);border:1px solid var(--line);color:var(--ink2)}
+.rec{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px dashed var(--line2)}
+.rec:last-child{border:0}
+.ply{width:20px;height:20px;border-radius:50%;border:1px solid #D9D2C4;display:flex;align-items:center;justify-content:center;flex:0 0 20px}
+.ply i{width:0;height:0;border-left:5px solid #8D8676;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;margin-left:1px}
+</style>
+</head>
+<body>
+
+<!-- ================= W1 今日 ================= -->
+<div class="frame" id="w1"><div class="app">
+  <aside class="sb">
+    <div class="brand"><svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#2E5D4E"/><path d="M9 13a4 4 0 1 1 4 4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="9" cy="13" r="1.6" fill="#fff"/><path d="M15.5 10.5a5.5 5.5 0 0 1 0 5" stroke="#8FB3A3" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><div><b>回声</b><br><span>ECHO</span></div></div>
+    <div class="nv on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke-linecap="round"/></svg>今日</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="2" width="5" height="8" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5V14" stroke-linecap="round"/></svg>讲解台</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><path d="M5.6 5.2 10.4 5.8M5.2 5.9 6.4 10.2M11 7.6 8.4 10.6"/></svg>知识地图</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9" stroke-linecap="round"/><path d="M12 2v2.4H9.6M4 14v-2.4h2.4" stroke-linecap="round"/></svg>复述计划</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12l3.5-4 3 2.5L14 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 4h3v3" stroke-linecap="round"/></svg>成长档案</div>
+    <div class="sbl">本周目标</div>
+    <div class="goal"><div class="gt"><span>讲解 3 / 5 次</span><span>60%</span></div><div class="gb"><i></i></div></div>
+    <div class="usr"><div class="av">林</div><div><div class="un">林一</div><div class="uc">初二（3）班</div></div></div>
+  </aside>
+  <main class="mn">
+    <div class="ph"><div><div class="eyebrow">2026 年 11 月 9 日 · 星期一</div><h1>下午好，林一</h1><div class="sub">今天有 1 个新讲解、7 张复述卡在等你。</div></div>
+      <div style="display:flex;gap:8px"><div class="bt">全部知识点</div><div class="bt p">＋ 开始讲解</div></div></div>
+
+    <div class="hero">
+      <div style="flex:1">
+        <span class="tag" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22);color:#DCEAE2">今日推荐 · 九年级 浮力</span>
+        <div class="h1t">阿基米德原理</div>
+        <div class="hp">你上次讲到这里停住了。今天试着把「排开液体的体积」讲清楚——小回会盯着这一句追问。</div>
+        <div class="hbtn"><b>开始讲解 →</b><span>建议 6 分钟 · 3 个关键点</span></div>
+      </div>
+      <svg class="art" width="330" height="230" viewBox="0 0 330 230" fill="none">
+        <circle cx="250" cy="110" r="30" stroke="#5C8574" stroke-width="1.2"/><circle cx="250" cy="110" r="58" stroke="#4C7565" stroke-width="1.1" opacity=".7"/>
+        <circle cx="250" cy="110" r="88" stroke="#41695A" stroke-width="1" opacity=".5"/><circle cx="250" cy="110" r="120" stroke="#3A5F52" stroke-width="1" opacity=".3"/>
+        <circle cx="250" cy="110" r="5" fill="#8FB3A3"/>
+      </svg>
+    </div>
+
+    <div class="stats">
+      <div class="st"><div class="n">12</div><div class="l">连续讲解天数</div></div>
+      <div class="st"><div class="n">5</div><div class="l">本周讲解次数 <em>↑ 2</em></div></div>
+      <div class="st"><div class="n">7</div><div class="l">待复述卡片 · 2 张已到期</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="c" style="display:flex;flex-direction:column">
+        <div class="ct">待复述队列<span class="more">按遗忘曲线排序 ›</span></div>
+        <div style="margin-top:6px">
+          <div class="row"><i class="dot dr"></i><div class="rw"><div class="t">阿基米德原理</div><div class="s">九年级 · 浮力 · 上次讲于 3 天前</div></div><div class="bar"><i style="width:34%;background:#C9502B"></i></div><span class="tag r">今天</span></div>
+          <div class="row"><i class="dot da"></i><div class="rw"><div class="t">液体压强 p=ρgh</div><div class="s">八年级下 · 压强 · 上次讲于 5 天前</div></div><div class="bar"><i style="width:52%;background:#BE8320"></i></div><span class="tag a">今天</span></div>
+          <div class="row"><i class="dot da"></i><div class="rw"><div class="t">密度测量（排水法）</div><div class="s">八年级上 · 质量与密度 · 上次讲于 9 天前</div></div><div class="bar"><i style="width:55%;background:#BE8320"></i></div><span class="tag a">明天</span></div>
+          <div class="row"><i class="dot dg"></i><div class="rw"><div class="t">二力平衡</div><div class="s">八年级下 · 力 · 上次讲于 14 天前</div></div><div class="bar"><i style="width:61%;background:#417D68"></i></div><span class="tag">3 天后</span></div>
+          <div class="row"><i class="dot dg"></i><div class="rw"><div class="t">弹簧测力计读数</div><div class="s">八年级下 · 力 · 已讲透 2 次</div></div><div class="bar"><i style="width:82%;background:#417D68"></i></div><span class="tag">7 天后</span></div>
+          <div class="row"><i class="dot dg"></i><div class="rw"><div class="t">质量与密度</div><div class="s">八年级上 · 质量与密度 · 已讲透 1 次</div></div><div class="bar"><i style="width:86%;background:#417D68"></i></div><span class="tag">12 天后</span></div>
+        </div>
+      </div>
+
+      <div class="c" style="display:flex;flex-direction:column">
+        <div class="ct">薄弱链路<span class="more">查看知识地图 ›</span></div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:8px;line-height:1.7">你的浮力问题来自两个上游节点，而不是浮力本身。</div>
+        <div class="mini">
+          <div class="mn-node a"><b>密度测量</b>0.55 模糊</div><div class="arw">›</div>
+          <div class="mn-node r"><b>阿基米德</b>0.34 未掌握</div><div class="arw">›</div>
+          <div class="mn-node"><b>浮沉条件</b>0.08 空白</div>
+        </div>
+        <div class="mini" style="margin-top:9px">
+          <div class="mn-node a"><b>二力平衡</b>0.61 模糊</div><div class="arw">›</div>
+          <div class="mn-node"><b>浮沉条件</b>0.08 空白</div>
+        </div>
+        <div style="margin-top:auto;background:var(--paper);border-radius:9px;padding:10px 12px;font-size:10px;color:var(--ink2);line-height:1.75">
+          <b style="color:var(--green)">建议路径</b>　先用 90 秒重讲「排水法怎么量体积」，再回到浮力。
+        </div>
+      </div>
+    </div>
+  </main>
+</div></div>
+
+<!-- ================= W2 讲解台 ================= -->
+<div class="frame" id="w2"><div class="app">
+  <aside class="sb">
+    <div class="brand"><svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#2E5D4E"/><path d="M9 13a4 4 0 1 1 4 4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="9" cy="13" r="1.6" fill="#fff"/><path d="M15.5 10.5a5.5 5.5 0 0 1 0 5" stroke="#8FB3A3" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><div><b>回声</b><br><span>ECHO</span></div></div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke-linecap="round"/></svg>今日</div>
+    <div class="nv on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="2" width="5" height="8" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5V14" stroke-linecap="round"/></svg>讲解台</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><path d="M5.6 5.2 10.4 5.8M5.2 5.9 6.4 10.2M11 7.6 8.4 10.6"/></svg>知识地图</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9" stroke-linecap="round"/><path d="M12 2v2.4H9.6M4 14v-2.4h2.4" stroke-linecap="round"/></svg>复述计划</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12l3.5-4 3 2.5L14 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 4h3v3" stroke-linecap="round"/></svg>成长档案</div>
+    <div class="sbl">本次讲解</div>
+    <div class="goal"><div class="gt"><span>已覆盖 4 / 9 点</span><span>44%</span></div><div class="gb"><i style="width:44%"></i></div></div>
+    <div class="usr"><div class="av">林</div><div><div class="un">林一</div><div class="uc">初二（3）班</div></div></div>
+  </aside>
+  <main class="mn">
+    <div class="ph" style="margin-bottom:12px"><div><div class="eyebrow">九年级 · 浮力 · 第 2 次讲解</div><h1>阿基米德原理</h1></div>
+      <div style="display:flex;gap:8px;align-items:center"><span class="tmr">02:14</span><div class="bt">重新选点</div><div class="bt p">结束并生成报告</div></div></div>
+
+    <div class="exp">
+      <div class="stage">
+        <div class="krec">
+          <div class="who"><div class="face">回</div><div><div class="wt">小回</div><div class="ws">在听你说…</div></div></div>
+          <div class="wave" id="wv"></div>
+        </div>
+        <div class="tr">
+          <div class="tl"><span class="tm">0:12</span><span class="tx">好，我来讲阿基米德原理。就是物体在液体里会受到一个向上的浮力。</span></div>
+          <div class="tl"><span class="tm">0:31</span><span class="tx">浮力的大小等于它排开的液体的重力，公式是 F 浮 等于 G 排。</span></div>
+          <div class="tl"><span class="tm">0:48</span><span class="tx">G 排就是排开液体的重力，等于 m 排 乘 g，m 排 等于 液体密度 乘 排开液体的体积。</span></div>
+          <div class="tl"><span class="tm">1:05</span><span class="tx">所以浮力就等于 液体密度 × g × V 排。</span></div>
+          <div class="tl act"><span class="tm">1:24</span><span class="tx">然后……浮力的大小应该和物体浸入的深度有关系吧？越深浮力越大？<span class="cur"></span></span></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:6px">
+          <div id="bigwave" style="display:flex;align-items:flex-end;gap:2px;height:104px"></div>
+          <div style="font-size:9px;color:var(--ink3);margin-top:7px;display:flex;gap:12px"><span>实时声波</span><span>信噪比良好 · 无环境噪音</span></div>
+        </div>
+        <div style="border-top:1px dashed var(--line2);padding-top:16px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--ink3);margin-bottom:9px"><span style="color:var(--ink2);font-weight:600">讲解节奏</span><span>停顿 4 次 · 语速 168 字/分 · 被追问打断 2 次</span></div>
+          <div id="rh" style="display:flex;gap:3px;height:9px"></div>
+          <div style="display:flex;gap:16px;margin-top:9px;font-size:9px;color:var(--ink3)">
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#417D68;margin-right:4px"></i>讲述</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#D9B369;margin-right:4px"></i>停顿</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#C9502B;margin-right:4px"></i>被追问</span>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="bigrec"><i></i></div>
+          <div><div style="font-size:10.5px;color:var(--ink2)">正在录音 · 说完一句可以停一下</div><div style="font-size:9.5px;color:var(--ink3);margin-top:2px">按空格暂停 · 语音在本地转文字后立即丢弃</div></div>
+          <div style="margin-left:auto;display:flex;gap:8px"><div class="bt s">切到文字输入</div><div class="bt s">我想不出来</div></div>
+        </div>
+      </div>
+
+      <div class="rail">
+        <div class="c" style="padding:13px 14px">
+          <div class="ct" style="font-size:11px">小回的疑问<span class="more">2</span></div>
+          <div class="bub" style="margin-top:9px">等一下，「排开」是什么意思呀？是把水倒掉吗？<div class="bst"><span class="tag a">追问 1</span>1:02</div></div>
+          <div class="bub" style="margin-top:8px">你刚才说越深浮力越大，可液体压强才和深度有关呀，我有点糊涂了。<div class="bst"><span class="tag r">追问 2</span>1:29</div></div>
+        </div>
+        <div class="hint"><b>卡住了？</b>　提示只会给你一个关键词，不会直接给答案。<br><span style="color:var(--ink3)">点击查看：「排开」＝物体浸入后挤出去的那部分液体</span></div>
+        <div class="c" style="padding:13px 14px">
+          <div class="ct" style="font-size:11px">这次要讲到的点<span class="more">9</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:9px">
+            <span class="tag">F浮 = G排</span><span class="tag">V排 的含义</span><span class="tag">ρ液 g V排</span>
+            <span class="tag" style="background:#F4F0E7;color:#A9A192;border-color:#EAE3D5">适用条件</span>
+            <span class="tag" style="background:#F4F0E7;color:#A9A192;border-color:#EAE3D5">实验验证</span>
+            <span class="tag" style="background:#F4F0E7;color:#A9A192;border-color:#EAE3D5">漂浮与悬浮</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div></div>
+
+<!-- ================= W3 报告 ================= -->
+<div class="frame" id="w3"><div class="app">
+  <aside class="sb">
+    <div class="brand"><svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#2E5D4E"/><path d="M9 13a4 4 0 1 1 4 4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="9" cy="13" r="1.6" fill="#fff"/><path d="M15.5 10.5a5.5 5.5 0 0 1 0 5" stroke="#8FB3A3" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><div><b>回声</b><br><span>ECHO</span></div></div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke-linecap="round"/></svg>今日</div>
+    <div class="nv on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="2" width="5" height="8" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5V14" stroke-linecap="round"/></svg>讲解台</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><path d="M5.6 5.2 10.4 5.8M5.2 5.9 6.4 10.2M11 7.6 8.4 10.6"/></svg>知识地图</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9" stroke-linecap="round"/><path d="M12 2v2.4H9.6M4 14v-2.4h2.4" stroke-linecap="round"/></svg>复述计划</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12l3.5-4 3 2.5L14 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 4h3v3" stroke-linecap="round"/></svg>成长档案</div>
+    <div class="usr"><div class="av">林</div><div><div class="un">林一</div><div class="uc">初二（3）班</div></div></div>
+  </aside>
+  <main class="mn">
+    <div class="ph" style="margin-bottom:12px"><div><div class="eyebrow">讲解报告 · 2026-11-09 16:41 · 时长 2 分 14 秒</div><h1>这次讲得怎么样</h1></div>
+      <div style="display:flex;gap:8px"><div class="bt">再讲一遍</div><div class="bt p">加入复述计划</div></div></div>
+
+    <div class="rp">
+      <div style="display:grid;grid-template-columns:250px 268px 1fr;gap:12px">
+        <div class="c">
+          <div class="ct" style="font-size:11px">综合得分</div>
+          <div class="score" style="margin-top:10px">
+            <div class="ringt">
+              <svg width="86" height="86" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="#EEE8DC" stroke-width="8"/><circle cx="50" cy="50" r="42" fill="none" stroke="#2E5D4E" stroke-width="8" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="76.5" transform="rotate(-90 50 50)"/></svg>
+              <div class="sv" style="margin-top:-58px">71</div><div class="sl" style="margin-top:26px">比上次 +9</div>
+            </div>
+            <div class="dims">
+              <div class="dm"><span>覆盖</span><div class="db"><i style="width:62%"></i></div>62</div>
+              <div class="dm"><span>准确</span><div class="db"><i style="width:80%"></i></div>80</div>
+              <div class="dm"><span>逻辑</span><div class="db"><i style="width:68%"></i></div>68</div>
+              <div class="dm"><span>术语</span><div class="db"><i style="width:74%"></i></div>74</div>
+              <div class="dm"><span>举例</span><div class="db"><i style="width:45%"></i></div>45</div>
+            </div>
+          </div>
+          <div style="margin-top:14px;border-top:1px dashed var(--line2);padding-top:10px">
+            <div style="font-size:9.5px;color:var(--ink3);margin-bottom:5px">与上次相比</div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;padding:2.5px 0;color:var(--ink2)"><span>知识点覆盖</span><span style="color:#417D68">＋18</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;padding:2.5px 0;color:var(--ink2)"><span>表述准确</span><span style="color:#417D68">＋4</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;padding:2.5px 0;color:var(--ink2)"><span>因果逻辑</span><span style="color:#C9502B">−2</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;padding:2.5px 0;color:var(--ink2)"><span>举例说明</span><span style="color:#417D68">＋10</span></div>
+          </div>
+        </div>
+
+        <div class="c" style="display:flex;flex-direction:column;align-items:center">
+          <div class="ct" style="font-size:11px;align-self:flex-start">六维雷达</div>
+          <svg width="210" height="196" viewBox="0 0 220 210" style="margin-top:2px">
+            <g stroke="#E9E3D7" fill="none">
+              <polygon points="110,32 177.5,71 177.5,149 110,188 42.5,149 42.5,71"/>
+              <polygon points="110,58.5 154.6,84.1 154.6,135.9 110,161.5 65.4,135.9 65.4,84.1"/>
+              <polygon points="110,84.3 132.3,97.2 132.3,122.8 110,135.7 87.7,122.8 87.7,97.2"/>
+              <path d="M110,110 L110,32M110,110 L177.5,71M110,110 L177.5,149M110,110 L110,188M110,110 L42.5,149M110,110 L42.5,71"/>
+            </g>
+            <polygon points="110,61.6 164,78.8 155.9,136.5 110,167.7 79.6,127.6 57.3,79.6" fill="rgba(46,93,78,.16)" stroke="#2E5D4E" stroke-width="1.8"/>
+            <g fill="#2E5D4E"><circle cx="110" cy="61.6" r="2.6"/><circle cx="164" cy="78.8" r="2.6"/><circle cx="155.9" cy="136.5" r="2.6"/><circle cx="110" cy="167.7" r="2.6"/><circle cx="79.6" cy="127.6" r="2.6"/><circle cx="57.3" cy="79.6" r="2.6"/></g>
+            <g font-size="9" fill="#918A7F" font-family="Microsoft YaHei">
+              <text x="110" y="22" text-anchor="middle">知识点覆盖</text>
+              <text x="186" y="66">表述准确</text>
+              <text x="186" y="156">因果逻辑</text>
+              <text x="110" y="203" text-anchor="middle">术语规范</text>
+              <text x="34" y="156" text-anchor="end">举例说明</text>
+              <text x="34" y="66" text-anchor="end">表达流畅</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="c">
+          <div class="ct" style="font-size:11px">讲了什么<span class="more">9 个断言单元</span></div>
+          <div style="font-size:9.5px;color:var(--ink3);margin:8px 0 5px">讲到位了 · 4</div>
+          <div class="ck"><span class="ok">F浮 = G排</span><span class="ok">V排 是排开液体的体积</span><span class="ok">ρ液 g V排 的推导</span><span class="ok">浮力方向竖直向上</span></div>
+          <div style="font-size:9.5px;color:var(--ink3);margin:10px 0 5px">一带而过 · 2</div>
+          <div class="ck"><span class="tag a">「排开」的物理意义</span><span class="tag a">V排 与 V物 的区别</span></div>
+          <div style="font-size:9.5px;color:var(--ink3);margin:10px 0 5px">完全没提 · 3</div>
+          <div class="ck"><span class="no">适用条件：气体同样成立</span><span class="no">漂浮时 F浮 = G物</span><span class="no">实验：称重法验证</span></div>
+          <div style="margin-top:12px;border-top:1px dashed var(--line2);padding-top:10px;font-size:10.5px;color:var(--ink2);line-height:1.7">
+            <span class="tag r" style="margin-right:5px">讲反了</span><b>「越深浮力越大」</b> —— 命中迷思 M-17，混淆了浮力与液体压强。
+          </div>
+        </div>
+      </div>
+
+      <div class="c" style="flex:1;display:grid;grid-template-columns:1fr 306px;gap:18px">
+        <div style="display:flex;flex-direction:column">
+          <div class="ct" style="font-size:11px">根因链：他卡住的不是浮力<span class="more">沿依赖关系反推 2 层</span></div>
+          <div class="chain">
+            <div class="ch a"><b>密度测量</b>0.55 模糊<br>八上</div><div class="arw">›</div>
+            <div class="ch r"><b>阿基米德原理</b>0.34 未掌握<br>九上 · 本次</div><div class="arw">›</div>
+            <div class="ch n"><b>物体浮沉条件</b>0.08 空白<br>九上</div>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:12px;font-size:10px;color:var(--ink2);line-height:1.75">
+            <div style="flex:1;border-left:2px solid var(--red);padding-left:10px">你用「密度」解释「排开体积」时含糊了 —— 这是八年级排水法测体积的遗留问题。</div>
+            <div style="flex:1;border-left:2px solid var(--amber);padding-left:10px">二力平衡 0.61 也在拖后腿，它直接影响「浮沉条件」的判断。</div>
+          </div>
+          <div style="margin-top:14px;border:1px dashed #CBE0D4;border-radius:10px;padding:12px 14px;background:#FCFDFB">
+            <div style="font-size:9.5px;color:var(--green);font-weight:600;margin-bottom:6px">明天复述时，只要把这一句讲清楚</div>
+            <div style="font-family:'Songti SC',serif;font-size:12.5px;line-height:1.75;color:var(--ink)">「排开液体的体积，就是物体浸进去那部分的体积。浮力只跟它和液体密度有关，跟深度无关。」</div>
+          </div>
+          <div style="margin-top:auto;background:var(--paper);border-radius:9px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:10px;color:var(--ink2);flex:1"><b style="color:var(--green)">建议下一步</b>　先用 90 秒重讲「排水法怎么量体积」，明天再复述浮力。</span>
+            <span class="bt" style="padding:5px 11px;font-size:10.5px">去讲密度测量</span>
+          </div>
+        </div>
+        <div style="border-left:1px solid var(--line2);padding-left:16px;display:flex;flex-direction:column">
+          <div class="ct" style="font-size:11px">三句人话</div>
+          <div class="sug"><b>1</b><span>概念讲对了，但只讲了公式，没讲「为什么」。</span></div>
+          <div class="sug"><b>2</b><span>追问 2 你答不上来，说明浮力和压强的边界没分清。</span></div>
+          <div class="sug"><b>3</b><span>全程没有一个例子，试着用「石块挂弹簧秤」讲一遍。</span></div>
+          <div style="margin-top:auto;background:#FCFAF5;border:1px solid var(--line);border-radius:10px;padding:11px 13px">
+            <div style="font-size:9.5px;color:var(--ink3);margin-bottom:6px">原话摘录 · 1:24</div>
+            <div style="font-family:'Songti SC',serif;font-size:12px;line-height:1.8;color:var(--ink2)">「浮力的大小应该和物体浸入的深度有关系吧？<span style="color:var(--red);border-bottom:1.5px solid #E4A88F">越深浮力越大</span>？」</div>
+            <div style="font-size:9.5px;color:var(--red);margin-top:7px">↳ 命中的迷思：把「液体压强随深度增大」迁移到了浮力上</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div></div>
+
+<!-- ================= W4 知识地图 ================= -->
+<div class="frame" id="w4"><div class="app">
+  <aside class="sb">
+    <div class="brand"><svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#2E5D4E"/><path d="M9 13a4 4 0 1 1 4 4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="9" cy="13" r="1.6" fill="#fff"/><path d="M15.5 10.5a5.5 5.5 0 0 1 0 5" stroke="#8FB3A3" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><div><b>回声</b><br><span>ECHO</span></div></div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke-linecap="round"/></svg>今日</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="2" width="5" height="8" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5V14" stroke-linecap="round"/></svg>讲解台</div>
+    <div class="nv on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><path d="M5.6 5.2 10.4 5.8M5.2 5.9 6.4 10.2M11 7.6 8.4 10.6"/></svg>知识地图</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9" stroke-linecap="round"/><path d="M12 2v2.4H9.6M4 14v-2.4h2.4" stroke-linecap="round"/></svg>复述计划</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12l3.5-4 3 2.5L14 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 4h3v3" stroke-linecap="round"/></svg>成长档案</div>
+    <div class="sbl">筛选</div>
+    <div class="goal" style="padding:9px 11px"><div class="gt" style="font-size:10px">仅显示薄弱节点</div></div>
+    <div class="usr"><div class="av">林</div><div><div class="un">林一</div><div class="uc">初二（3）班</div></div></div>
+  </aside>
+  <main class="mn">
+    <div class="ph" style="margin-bottom:12px"><div><div class="eyebrow">初中物理 · 浮力子图 7 个节点 · 已学 5 个</div><h1>知识地图</h1><div class="sub">圆圈颜色 = 掌握程度，虚线 = 还没学过</div></div>
+      <div style="display:flex;gap:8px"><div class="bt">力学</div><div class="bt">全部年级</div></div></div>
+
+    <div class="mapp">
+      <div class="mapc">
+        <svg width="100%" height="100%" viewBox="0 0 700 610" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9C1B2"/></marker>
+            <marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9502B"/></marker>
+          </defs>
+          <g stroke="#CFC7B8" stroke-width="1.4" fill="none" marker-end="url(#m1)">
+            <path d="M154,120 L266,120"/>
+            <path d="M120,154 L120,266"/>
+            <path d="M120,514 C240,585 460,555 583,352"/>
+            <path d="M334,480 C420,486 500,500 575,505"/>
+            <path d="M154,300 C240,300 330,288 400,244"/>
+            <path d="M488,238 C520,255 552,286 580,310"/>
+            <path d="M470,255 C505,320 545,420 578,486"/>
+            <path d="M615,366 L615,474"/>
+          </g>
+          <path d="M334,120 C370,122 392,158 417,188" stroke="#C9502B" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#m2)"/>
+
+          <g font-family="Microsoft YaHei">
+            <circle cx="120" cy="120" r="34" fill="#fff" stroke="#417D68" stroke-width="2"/><circle cx="120" cy="120" r="26" fill="#EAF1EC"/>
+            <text x="120" y="124" text-anchor="middle" font-size="9.5" fill="#1F1D1A">质量与密度</text>
+            <text x="120" y="170" text-anchor="middle" font-size="8.5" fill="#417D68">0.86</text>
+
+            <circle cx="300" cy="120" r="34" fill="#FAF0DA" stroke="#BE8320" stroke-width="2"/>
+            <text x="300" y="117" text-anchor="middle" font-size="9" fill="#1F1D1A">密度测量</text>
+            <text x="300" y="129" text-anchor="middle" font-size="9" fill="#1F1D1A">排水法</text>
+            <text x="300" y="170" text-anchor="middle" font-size="8.5" fill="#BE8320">0.55</text>
+
+            <circle cx="120" cy="300" r="34" fill="#fff" stroke="#417D68" stroke-width="2"/><circle cx="120" cy="300" r="26" fill="#EAF1EC"/>
+            <text x="120" y="304" text-anchor="middle" font-size="9.5" fill="#1F1D1A">液体压强</text>
+            <text x="120" y="350" text-anchor="middle" font-size="8.5" fill="#417D68">0.79</text>
+
+            <circle cx="120" cy="480" r="34" fill="#FAF0DA" stroke="#BE8320" stroke-width="2"/>
+            <text x="120" y="484" text-anchor="middle" font-size="9.5" fill="#1F1D1A">二力平衡</text>
+            <text x="120" y="530" text-anchor="middle" font-size="8.5" fill="#BE8320">0.61</text>
+
+            <circle cx="300" cy="480" r="34" fill="#fff" stroke="#417D68" stroke-width="2"/><circle cx="300" cy="480" r="26" fill="#EAF1EC"/>
+            <text x="300" y="484" text-anchor="middle" font-size="9" fill="#1F1D1A">弹簧测力计</text>
+            <text x="300" y="530" text-anchor="middle" font-size="8.5" fill="#417D68">0.82</text>
+
+            <circle cx="450" cy="215" r="42" fill="#C9502B" stroke="#A63F20" stroke-width="2"/>
+            <text x="450" y="212" text-anchor="middle" font-size="9.5" fill="#fff" font-weight="600">阿基米德</text>
+            <text x="450" y="224" text-anchor="middle" font-size="9.5" fill="#fff" font-weight="600">原理</text>
+            <text x="450" y="280" text-anchor="middle" font-size="8.5" fill="#C9502B">本次 0.34</text>
+
+            <circle cx="615" cy="330" r="36" fill="#fff" stroke="#C0B8A8" stroke-dasharray="4 3"/>
+            <text x="615" y="327" text-anchor="middle" font-size="9" fill="#8E877C">物体浮沉</text>
+            <text x="615" y="339" text-anchor="middle" font-size="9" fill="#8E877C">条件</text>
+
+            <circle cx="615" cy="510" r="36" fill="#fff" stroke="#C0B8A8" stroke-dasharray="4 3"/>
+            <text x="615" y="507" text-anchor="middle" font-size="9" fill="#8E877C">浮力综合</text>
+            <text x="615" y="519" text-anchor="middle" font-size="9" fill="#8E877C">计算</text>
+          </g>
+          <text x="330" y="172" font-size="8.5" fill="#C9502B">根因路径</text>
+        </svg>
+        <div class="lg"><span><i style="background:#417D68"></i>已掌握</span><span><i style="background:#BE8320"></i>模糊</span><span><i style="background:#C9502B"></i>未掌握</span><span><i style="background:#fff;border:1px dashed #C0B8A8"></i>未学习</span></div>
+      </div>
+
+      <div class="side">
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:var(--red)"></div><div style="font-size:13px;font-weight:700">阿基米德原理</div></div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:4px">九年级 · 浮力 · 第 3 章</div>
+        <div style="display:flex;gap:6px;margin-top:10px"><span class="tag r">掌握度 0.34</span><span class="tag r">讲到 62%</span></div>
+        <div style="height:1px;background:var(--line2);margin:13px 0"></div>
+        <div style="font-size:9.5px;color:var(--ink3);margin-bottom:5px">前驱 · 2</div>
+        <div style="font-size:10.5px;line-height:2.1;color:var(--ink2)"><span style="color:var(--amber)">●</span> 密度测量（排水法）<span style="float:right;color:#B0A897">0.55</span><br><span style="color:var(--green2)">●</span> 液体压强 p=ρgh<span style="float:right;color:#B0A897">0.79</span></div>
+        <div style="font-size:9.5px;color:var(--ink3);margin:11px 0 5px">后继 · 2</div>
+        <div style="font-size:10.5px;line-height:2.1;color:var(--ink2)"><span style="color:#C0B8A8">○</span> 物体浮沉条件<span style="float:right;color:#B0A897">0.08</span><br><span style="color:#C0B8A8">○</span> 浮力综合计算<span style="float:right;color:#B0A897">0.05</span></div>
+        <div style="height:1px;background:var(--line2);margin:13px 0"></div>
+        <div style="font-size:9.5px;color:var(--ink3)">最近一次讲解</div>
+        <div style="font-size:10.5px;color:var(--ink2);margin-top:4px;line-height:1.7">今天 16:41，时长 2 分 14 秒<br><span style="color:var(--red)">讲反了 1 处 · 漏讲 3 点</span></div>
+        <div class="bt p" style="margin-top:14px;justify-content:center;width:100%">开始讲解</div>
+        <div class="bt" style="margin-top:7px;justify-content:center;width:100%">回看报告</div>
+        <div style="margin-top:auto;border-top:1px dashed var(--line2);padding-top:12px;font-size:9.5px;color:var(--ink3);line-height:1.85">
+          本子图共 7 个节点，其中 <b style="color:var(--red)">3 个</b> 是你的卡点。沿红色虚线往上游走，就是最省力的补法。
+        </div>
+      </div>
+    </div>
+  </main>
+</div></div>
+
+<!-- ================= W5 复述计划 ================= -->
+<div class="frame" id="w5"><div class="app">
+  <aside class="sb">
+    <div class="brand"><svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#2E5D4E"/><path d="M9 13a4 4 0 1 1 4 4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="9" cy="13" r="1.6" fill="#fff"/><path d="M15.5 10.5a5.5 5.5 0 0 1 0 5" stroke="#8FB3A3" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><div><b>回声</b><br><span>ECHO</span></div></div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke-linecap="round"/></svg>今日</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="2" width="5" height="8" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5V14" stroke-linecap="round"/></svg>讲解台</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><path d="M5.6 5.2 10.4 5.8M5.2 5.9 6.4 10.2M11 7.6 8.4 10.6"/></svg>知识地图</div>
+    <div class="nv on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9" stroke-linecap="round"/><path d="M12 2v2.4H9.6M4 14v-2.4h2.4" stroke-linecap="round"/></svg>复述计划</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12l3.5-4 3 2.5L14 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 4h3v3" stroke-linecap="round"/></svg>成长档案</div>
+    <div class="sbl">今日进度</div>
+    <div class="goal"><div class="gt"><span>复述 1 / 3 张</span><span>33%</span></div><div class="gb"><i style="width:33%"></i></div></div>
+    <div class="usr"><div class="av">林</div><div><div class="un">林一</div><div class="uc">初二（3）班</div></div></div>
+  </aside>
+  <main class="mn">
+    <div class="ph" style="margin-bottom:12px"><div><div class="eyebrow">遗忘曲线 · 共 7 张卡片 · 最早到期 3 天前</div><h1>复述计划</h1><div class="sub">讲一遍，比做十道题更能记住。</div></div>
+      <div style="display:flex;gap:8px"><div class="bt">本周</div><div class="bt p">开始今日复述</div></div></div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:14px">
+      <div class="c" style="border-left:3px solid var(--red)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:700">阿基米德原理</div><div style="font-size:9.5px;color:var(--ink3);margin-top:3px">已逾期 3 天 · 建议 3 分钟</div></div><span class="tag r">最急</span></div>
+        <div style="font-size:10px;color:var(--ink2);margin-top:10px;line-height:1.7">复述目标：说清「V排 是挤出去的液体体积」，并纠正「越深浮力越大」。</div>
+        <div class="bt p" style="margin-top:10px;font-size:10.5px;padding:5px 11px">开始复述</div>
+      </div>
+      <div class="c" style="border-left:3px solid var(--amber)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:700">液体压强 p=ρgh</div><div style="font-size:9.5px;color:var(--ink3);margin-top:3px">今天到期 · 建议 2 分钟</div></div><span class="tag a">今天</span></div>
+        <div style="font-size:10px;color:var(--ink2);margin-top:10px;line-height:1.7">复述目标：讲清 h 是「到液面的竖直距离」，不是容器高度。</div>
+        <div class="bt" style="margin-top:10px;font-size:10.5px;padding:5px 11px">开始复述</div>
+      </div>
+      <div class="c" style="border-left:3px solid var(--green2)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:700">弹簧测力计读数</div><div style="font-size:9.5px;color:var(--ink3);margin-top:3px">今天已复述 · 得分 84</div></div><span class="tag">已完成</span></div>
+        <div style="font-size:10px;color:var(--ink2);margin-top:10px;line-height:1.7">下次复述：11 月 16 日。连续讲透两次后可延长到 30 天。</div>
+        <div class="bt s" style="margin-top:10px;font-size:10.5px;padding:5px 11px">查看报告</div>
+      </div>
+    </div>
+
+    <div class="c" style="flex:1;display:flex;flex-direction:column">
+      <div class="ct">未来七天<span class="more">拖动卡片可以改时间</span></div>
+      <div class="days">
+        <div class="day on"><div class="dn2">今天</div><div class="dd">9</div><div class="it r">阿基米德原理</div><div class="it a">液体压强</div><div class="it n">弹簧测力计 ✓</div></div>
+        <div class="day"><div class="dn2">周二</div><div class="dd">10</div><div class="it a">密度测量</div><div class="it n">二力平衡</div></div>
+        <div class="day"><div class="dn2">周三</div><div class="dd">11</div><div class="it n">质量与密度</div></div>
+        <div class="day"><div class="dn2">周四</div><div class="dd">12</div><div class="it n">力的合成</div></div>
+        <div class="day"><div class="dn2">周五</div><div class="dd">13</div><div class="it n">浮沉条件</div></div>
+        <div class="day"><div class="dn2">周六</div><div class="dd">14</div><div class="it n">—</div></div>
+        <div class="day"><div class="dn2">周日</div><div class="dd">15</div><div class="it n">周回顾 · 3 张</div></div>
+      </div>
+      <div style="margin-top:auto;border-top:1px dashed var(--line2);padding-top:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px"><span style="font-size:10px;color:var(--ink2);font-weight:600">近 26 周复述热力</span><span style="font-size:9px;color:var(--ink3)">越深 = 当天讲得越多 · 空格 = 没讲</span></div>
+        <div id="heat" style="display:flex;gap:4px"></div>
+      </div>
+      <div style="margin-top:0;background:var(--paper);border-radius:10px;padding:12px 15px;display:flex;gap:22px;align-items:center">
+        <div style="font-size:10px;color:var(--ink2);line-height:1.75;flex:1">
+          <b style="color:var(--green)">为什么要讲出来？</b><br>讲述比再认要求更高的提取强度。同样的 3 分钟，复述的保持率约为重读的 2 倍，因此间隔可以拉得更长。</div>
+        <svg width="168" height="52" viewBox="0 0 168 52" fill="none">
+          <path d="M2 44 C40 42 62 30 84 24 C106 18 130 12 166 6" stroke="#2E5D4E" stroke-width="1.6"/>
+          <path d="M2 46 C40 45 70 42 96 38 C122 34 142 31 166 28" stroke="#C9A06B" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <text x="2" y="51" font-size="7" fill="#8E877C">0 天</text><text x="150" y="51" font-size="7" fill="#8E877C">30 天</text>
+        </svg>
+      </div>
+    </div>
+  </main>
+</div></div>
+
+<!-- ================= W6 成长档案 ================= -->
+<div class="frame" id="w6"><div class="app">
+  <aside class="sb">
+    <div class="brand"><svg width="26" height="26" viewBox="0 0 26 26"><rect width="26" height="26" rx="8" fill="#2E5D4E"/><path d="M9 13a4 4 0 1 1 4 4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="9" cy="13" r="1.6" fill="#fff"/><path d="M15.5 10.5a5.5 5.5 0 0 1 0 5" stroke="#8FB3A3" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><div><b>回声</b><br><span>ECHO</span></div></div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke-linecap="round"/></svg>今日</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5.5" y="2" width="5" height="8" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5V14" stroke-linecap="round"/></svg>讲解台</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><path d="M5.6 5.2 10.4 5.8M5.2 5.9 6.4 10.2M11 7.6 8.4 10.6"/></svg>知识地图</div>
+    <div class="nv"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9" stroke-linecap="round"/><path d="M12 2v2.4H9.6M4 14v-2.4h2.4" stroke-linecap="round"/></svg>复述计划</div>
+    <div class="nv on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12l3.5-4 3 2.5L14 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 4h3v3" stroke-linecap="round"/></svg>成长档案</div>
+    <div class="usr"><div class="av">林</div><div><div class="un">林一</div><div class="uc">初二（3）班</div></div></div>
+  </aside>
+  <main class="mn">
+    <div class="ph" style="margin-bottom:12px"><div><div class="eyebrow">累计 38 次讲解 · 12 天连续 · 共 96 分钟</div><h1>成长档案</h1><div class="sub">不是分数曲线，是你讲得越来越像老师的证据。</div></div>
+      <div style="display:flex;gap:8px"><div class="bt">近 30 天</div><div class="bt">导出周报</div></div></div>
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:12px;flex:1;min-height:0">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="c" style="flex:1;display:flex;flex-direction:column">
+          <div class="ct">讲解质量趋势<span class="more">最近 8 次 · 综合分</span></div>
+          <svg width="100%" height="196" viewBox="0 0 594 196" style="margin-top:10px">
+            <g stroke="#F0EBE1" stroke-width="1">
+              <line x1="0" y1="26" x2="594" y2="26"/><line x1="0" y1="76" x2="594" y2="76"/><line x1="0" y1="126" x2="594" y2="126"/><line x1="0" y1="176" x2="594" y2="176"/>
+            </g>
+            <path d="M15,134 L95,120 L175,147 L255,93 L335,107 L415,80 L495,71 L575,53 L575,176 L15,176 Z" fill="rgba(46,93,78,.08)"/>
+            <path d="M15,134 L95,120 L175,147 L255,93 L335,107 L415,80 L495,71 L575,53" fill="none" stroke="#2E5D4E" stroke-width="2.2" stroke-linejoin="round"/>
+            <g fill="#fff" stroke="#2E5D4E" stroke-width="2"><circle cx="15" cy="134" r="4"/><circle cx="95" cy="120" r="4"/><circle cx="175" cy="147" r="4"/><circle cx="255" cy="93" r="4"/><circle cx="335" cy="107" r="4"/><circle cx="415" cy="80" r="4"/><circle cx="495" cy="71" r="4"/><circle cx="575" cy="53" r="4.5" fill="#2E5D4E"/></g>
+            <text x="575" y="40" font-size="11" fill="#2E5D4E" font-family="Georgia" text-anchor="end">71</text>
+            <g font-size="9" fill="#B0A897" font-family="Georgia"><text x="15" y="192">10/12</text><text x="255" y="192" text-anchor="middle">10/26</text><text x="575" y="192" text-anchor="end">11/06</text></g>
+          </svg>
+        </div>
+
+        <div class="c" style="flex:1.1;display:flex;flex-direction:column">
+          <div class="ct">最近讲解<span class="more">全部录音存在本地 ›</span></div>
+          <div style="margin-top:4px">
+            <div class="rec"><div class="ply"><i></i></div><div style="flex:1"><div style="font-size:11px;font-weight:600">阿基米德原理</div><div style="font-size:9px;color:var(--ink3)">今天 16:41 · 2 分 14 秒 · 71 分 · 讲反 1 处</div></div><span class="tag r">有缺口</span></div>
+            <div class="rec"><div class="ply"><i></i></div><div style="flex:1"><div style="font-size:11px;font-weight:600">弹簧测力计读数</div><div style="font-size:9px;color:var(--ink3)">今天 15:20 · 1 分 26 秒 · 84 分 · 全对</div></div><span class="tag">讲透了</span></div>
+            <div class="rec"><div class="ply"><i></i></div><div style="flex:1"><div style="font-size:11px;font-weight:600">液体压强 p=ρgh</div><div style="font-size:9px;color:var(--ink3)">11 月 6 日 · 3 分 02 秒 · 62 分</div></div><span class="tag a">待加强</span></div>
+            <div class="rec"><div class="ply"><i></i></div><div style="flex:1"><div style="font-size:11px;font-weight:600">二力平衡</div><div style="font-size:9px;color:var(--ink3)">11 月 4 日 · 2 分 40 秒 · 66 分</div></div><span class="tag a">待加强</span></div>
+            <div class="rec"><div class="ply"><i></i></div><div style="flex:1"><div style="font-size:11px;font-weight:600">密度测量（排水法）</div><div style="font-size:9px;color:var(--ink3)">10 月 30 日 · 2 分 05 秒 · 59 分</div></div><span class="tag r">有缺口</span></div>
+            <div class="rec"><div class="ply"><i></i></div><div style="flex:1"><div style="font-size:11px;font-weight:600">质量与密度</div><div style="font-size:9px;color:var(--ink3)">10 月 26 日 · 1 分 48 秒 · 73 分</div></div><span class="tag">讲透了</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="c">
+          <div class="ct">能力标签<span class="more">12 天</span></div>
+          <div class="tags">
+            <span class="tg" style="background:var(--gs);border-color:#CEE0D6;color:var(--green)">公式推导清楚</span>
+            <span class="tg" style="background:var(--gs);border-color:#CEE0D6;color:var(--green)">术语规范</span>
+            <span class="tg" style="background:var(--as);border-color:#EBD9B7;color:var(--amber)">缺少例子</span>
+            <span class="tg" style="background:var(--rs);border-color:#F0CFC3;color:var(--red)">混淆相近概念</span>
+            <span class="tg">语速偏快</span>
+          </div>
+          <div style="margin-top:12px;font-size:10px;color:var(--ink2);line-height:1.8;border-top:1px dashed var(--line2);padding-top:10px">
+            「举例说明」连续 4 次低于 50 分，是当前最该补的一项。
+          </div>
+        </div>
+        <div class="c" style="flex:1;display:flex;flex-direction:column">
+          <div class="ct">掌握分布</div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:16px">
+            <svg width="132" height="132" viewBox="0 0 150 150">
+              <g transform="rotate(-90 75 75)" fill="none" stroke-width="17" stroke-linecap="butt">
+                <circle cx="75" cy="75" r="54" stroke="#417D68" stroke-dasharray="113.1 226.2"/>
+                <circle cx="75" cy="75" r="54" stroke="#BE8320" stroke-dasharray="84.8 254.5" stroke-dashoffset="-113.1"/>
+                <circle cx="75" cy="75" r="54" stroke="#C9502B" stroke-dasharray="56.6 282.7" stroke-dashoffset="-197.9"/>
+                <circle cx="75" cy="75" r="54" stroke="#DAD3C5" stroke-dasharray="84.8 254.5" stroke-dashoffset="-254.5"/>
+              </g>
+              <text x="75" y="73" text-anchor="middle" font-size="23" font-family="Songti SC,SimSun,serif" fill="#1F1D1A">12</text>
+              <text x="75" y="90" text-anchor="middle" font-size="8.5" fill="#918A7F">个知识点</text>
+            </svg>
+            <div style="flex:1;font-size:9.5px;color:var(--ink2);line-height:2.1">
+              <div><i style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#417D68;margin-right:6px"></i>已掌握<span style="float:right;color:var(--ink3)">4</span></div>
+              <div><i style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#BE8320;margin-right:6px"></i>模糊<span style="float:right;color:var(--ink3)">3</span></div>
+              <div><i style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#C9502B;margin-right:6px"></i>未掌握<span style="float:right;color:var(--ink3)">2</span></div>
+              <div><i style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#DAD3C5;margin-right:6px"></i>未学习<span style="float:right;color:var(--ink3)">3</span></div>
+            </div>
+          </div>
+          <div style="margin-top:14px;border-top:1px dashed var(--line2);padding-top:10px;font-size:9.5px;color:var(--ink3)">
+            <div style="display:flex;justify-content:space-between;padding:2px 0"><span>本周新增已掌握</span><b style="color:#417D68">＋2</b></div>
+            <div style="display:flex;justify-content:space-between;padding:2px 0"><span>模糊 → 已掌握</span><b style="color:#417D68">＋1</b></div>
+            <div style="display:flex;justify-content:space-between;padding:2px 0"><span>新增卡点</span><b style="color:#C9502B">＋1</b></div>
+          </div>
+          <div style="margin-top:auto;background:var(--paper);border-radius:9px;padding:10px 12px;font-size:10px;color:var(--ink2);line-height:1.75">
+            <b style="color:var(--green)">周报已生成</b><br>本周讲透 2 个、补上 1 个历史缺口。老师可以看到班级共性卡点。
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div></div>
+
+<script>
+  const bw=document.getElementById('bigwave');
+  if(bw){for(let i=0;i<118;i++){const h=Math.max(4,Math.round((Math.abs(Math.sin(i*0.27))*0.55+Math.abs(Math.sin(i*0.83))*0.35+0.1)*96));
+    const b=document.createElement('div');b.style.flex='1';b.style.height=h+'px';b.style.borderRadius='2px';
+    b.style.background='#417D68';b.style.opacity=(0.18+h/150).toFixed(2);bw.appendChild(b);}}
+  const rh=document.getElementById('rh');
+  if(rh){const pat=[1,1,1,2,1,1,3,1,1,1,2,2,1,1,1,1,3,1,1,2,1,1,1,1,2,1,1,3,1,1,1,2,1,1,1,1,2,1,3,1,1,1,2,1,1,1];
+    pat.forEach(p=>{const d=document.createElement('div');d.style.flex='1';d.style.borderRadius='2px';d.style.background=p===1?'#417D68':p===2?'#D9B369':'#C9502B';rh.appendChild(d);});}
+  const hh=document.getElementById('heat');
+  if(hh){for(let c=0;c<26;c++){const col=document.createElement('div');col.style.display='flex';col.style.flexDirection='column';col.style.gap='4px';
+    for(let r=0;r<7;r++){const v=(c*7+r*13+((c*3)%5))%11;const s=document.createElement('div');s.style.width='24px';s.style.height='24px';s.style.borderRadius='3px';
+      const lv=v<3?0:v<5?1:v<7?2:v<9?3:4;
+      s.style.background=['#F1ECE2','#DFEAE3','#B9D3C6','#7BAA97','#2E5D4E'][lv];col.appendChild(s);}
+    hh.appendChild(col);}}
+
+  const id=(location.hash||'#w1').slice(1);
+  const el=document.getElementById(id)||document.getElementById('w1');
+  el.classList.add('on');
+  // waveform bars
+  document.querySelectorAll('.wave').forEach(w=>{
+    const hs=[8,14,20,11,24,16,9,19,23,12,7,17,21,13,10,18];
+    hs.forEach((h,i)=>{const b=document.createElement('i');b.style.height=h+'px';b.style.opacity=(0.35+h/40);w.appendChild(b);});
+  });
+</script>
+</body>
+</html>
