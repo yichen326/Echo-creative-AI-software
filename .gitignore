@@ -8,20 +8,24 @@ venv/
 # 依赖装在本地，不入库
 应用/vendor/
 
-# 运行时数据库
+# 运行时
 应用/data/echo.db
 应用/data/echo.db-journal
+应用/logs/
+应用/.venv/
+
+# 发布包（体积大，不入库）
+发行版/*.zip
+
+# 构建中间产物
+构建/_*.docx
+构建/_*.pdf
+构建/prev*/
+构建/qa*/
+构建/qa2/
+构建/checks.json
 
 # 系统
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# 临时构建产物
-构建/_*.docx
-构建/_*.pdf
-构建/prev*/
-构建/qa*/
-
-# ���ؽ�ͼ����
-Ӧ��/web/_shots/
