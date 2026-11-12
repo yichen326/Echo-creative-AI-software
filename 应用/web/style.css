@@ -287,6 +287,14 @@ select.mini{max-width:104px;padding:3px 4px}
 .rt{font-size:11.5px;font-weight:600}
 .rs{font-size:9px;color:var(--ink3);margin-top:1px}
 
+
+/* 截图与低动态偏好：不动画、不透明过渡，保证一次就能拍稳 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .view { opacity: 1 !important; transform: none !important; }
+  .drawer { transition: none !important; }
+}
+
 @media (max-width:1080px){
   .grid2,.r3,.gr-grid,.exp{grid-template-columns:1fr}
   .mapp{grid-template-columns:1fr}
