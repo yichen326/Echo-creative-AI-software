@@ -37,6 +37,12 @@ function show(id) {
      ref: renderRef }[id] || renderToday)();
 }
 window.addEventListener("hashchange", () => show((location.hash || "#today").slice(1)));
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeRefDrawer(); });
+document.addEventListener("click", e => {
+  if (!S.drawerOpen) return;
+  if (e.target.closest("#refDrawer") || e.target.closest("#btnRef") || e.target.closest("#btnDocRef")) return;
+  closeRefDrawer();
+}, true);
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-go]");
   if (t) { e.preventDefault(); go(t.dataset.go); }
@@ -173,7 +179,10 @@ function renderExplain() {
   resetLive();
   $("#btnFinish").onclick = finishSession;
   $("#btnBackPick").onclick = () => { srStopSilently(); stopTimer(); go("map"); };
-  $("#btnRef").onclick = () => { S.ref = n.id; go("ref"); };
+  $("#btnRef").onclick = openRefDrawer;
+  $("#btnDocRef").onclick = openRefDrawer;
+  $("#drClose").onclick = closeRefDrawer;
+  $("#drSpeak").onclick = () => { if (S.drawerNode) speakParagraph(S.drawerNode.reference); };
   $("#btnAnswer").onclick = submitInput;
   $("#btnSkip").onclick = skipQuestion;
   $("#btnSpeak").onclick = () => {
@@ -209,6 +218,35 @@ function resetLive() {
 }
 
 /* ---------------- 对话：小回问，学生答 ---------------- */
+/* ---------------- 参考答案抽屉：不离开讲解台 ---------------- */
+async function openRefDrawer() {
+  const id = (S.session && S.session.node.id) || (S.refNode && S.refNode.id) || (S.boot && S.boot.pick && S.boot.pick.id);
+  if (!id) return;
+  try {
+    const n = await api.get("/api/node/" + id);
+    S.drawerNode = n;
+    $("#drEyebrow").textContent = n.grade + " · " + n.chapter;
+    $("#drTitle").textContent = n.name + " · 参考答案";
+    $("#drBody").innerHTML =
+      '<div class="dsec"><h4>标准讲解</h4><div class="dref">' + esc(n.reference) + '</div>' +
+      '<div class="refex" style="margin-top:10px">' + esc(n.example) + '</div></div>' +
+      '<div class="dsec"><h4>必须讲到的点 · ' + n.assertions.length + ' 条</h4><ul class="dlist">' +
+      n.assertions.map(a => '<li>' + esc(a.text) + '<b>' + a.w.toFixed(1) + '</b></li>').join("") +
+      '</ul></div>' +
+      '<div class="dsec"><h4>常见错误 · ' + n.misconceptions.length + ' 条</h4>' +
+      n.misconceptions.map(m => '<div class="dmis"><div class="t">✕ ' + esc(m.title) +
+        '</div><div class="c">' + esc(m.correction) + '</div></div>').join("") +
+      '</div>';
+    $("#refDrawer").classList.add("on");
+    S.drawerOpen = true;
+  } catch (e) { alert("加载失败：" + e.message); }
+}
+function closeRefDrawer() {
+  const d = $("#refDrawer");
+  if (d) d.classList.remove("on");
+  S.drawerOpen = false;
+}
+
 function pushChatTo(box, who, text, extra) {
   if (!box) return null;
   const d = document.createElement("div");
@@ -1124,6 +1162,10 @@ async function runDemo(sampleId, hold, autoAnswer) {
   };
   const q = new URLSearchParams(location.search);
   const demo = q.get("demo");
-  if (demo) { await runDemo(demo, q.get("hold") === "1", q.get("answer") === "1"); return; }
+  if (demo) {
+    await runDemo(demo, q.get("hold") === "1", q.get("answer") === "1");
+    if (q.get("drawer") === "1") await openRefDrawer();
+    return;
+  }
   show((location.hash || "#today").slice(1));
 })();

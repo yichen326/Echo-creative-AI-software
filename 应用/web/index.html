@@ -148,6 +148,7 @@
             <div class="chat-tools">
               <select id="voiceSel" class="mini" title="选择小回的声音"></select>
               <button id="btnSpeak" class="mini" title="让小回把问题读出来">🔊 朗读</button>
+              <button id="btnDocRef" class="mini" title="不离开讲解台，看一眼参考答案">📖 答案</button>
             </div>
             <div id="chat" class="chat">
               <div class="msg ai">开始讲吧，我听着。讲得含糊的地方我会举手。</div>
@@ -170,6 +171,21 @@
       <div class="c chipbar">
         <div class="ct">这次要讲到的点<span class="more" id="assertCount">—</span></div>
         <div class="chips" id="assertChips"></div>
+      </div>
+
+      <!-- 参考答案抽屉：不离开讲解台就能看 -->
+      <div id="refDrawer" class="drawer">
+        <div class="dh">
+          <div>
+            <div class="eyebrow" id="drEyebrow">—</div>
+            <div class="dtitle" id="drTitle">参考答案</div>
+          </div>
+          <div class="dact">
+            <button class="mini" id="drSpeak">🔊 读</button>
+            <button class="mini" id="drClose">✕</button>
+          </div>
+        </div>
+        <div class="dbody" id="drBody"></div>
       </div>
     </section>
 
