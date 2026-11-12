@@ -174,6 +174,7 @@ function renderExplain() {
 }
 
 function resetLive() {
+  srStopSilently();
   stopTimer(); S.elapsed = 0; $("#timer").textContent = "00:00";
   $("#progText").textContent = `已覆盖 0 / ${S.session?.assertion_count || 0} 点`;
   $("#progBar").style.width = "0%";
@@ -181,7 +182,11 @@ function resetLive() {
   $("#probeCount").textContent = "0";
   $$("#assertChips span").forEach(s => s.className = "");
   $("#recBtn").classList.remove("on");
-  $("#recText").textContent = "未开始 · 点左侧按钮计时";
+  const st = srStatus();
+  $("#recText").textContent = st.ok
+    ? "点左侧按钮开始说话，也可以直接打字"
+    : st.msg + " · 请直接打字，或播放示例";
+  $("#listening").textContent = "在听你说…";
 }
 
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
@@ -253,6 +258,102 @@ function startTimer() {
   }, 1000);
 }
 function stopTimer() { clearInterval(S.timer); S.timer = null; }
+
+/* ---------------------------------------------------------------- 语音识别
+   Edge / Chrome 的 Web Speech 识别都走厂商在线服务（Edge 用微软，Chrome 用 Google），
+   必须满足：安全上下文（localhost 或 HTTPS）+ 麦克风权限 + 能连上该服务。
+   不支持或出错时一律退回「计时 + 手打」，不阻塞讲述。 */
+const SR_CTOR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let recog = null, recogOn = false;
+
+function srStatus() {
+  if (!SR_CTOR) return { ok: false, msg: "此浏览器不支持语音识别" };
+  if (!window.isSecureContext) return { ok: false, msg: "需要 localhost 或 HTTPS 才能用麦克风" };
+  return { ok: true, msg: "" };
+}
+
+const SR_ERRORS = {
+  "not-allowed": "麦克风权限被拒绝（点地址栏的锁图标允许麦克风）",
+  "service-not-allowed": "浏览器禁止使用语音服务，或该服务在当前网络不可用",
+  "audio-capture": "找不到麦克风设备",
+  "no-speech": "没有听到声音，再试一次",
+  "network": "连不上语音服务（需要联网）",
+  "aborted": "识别已中止",
+  "language-not-supported": "当前浏览器不支持 zh-CN 识别"
+};
+
+function ensureRecog() {
+  if (recog || !SR_CTOR) return recog;
+  const r = new SR_CTOR();
+  r.lang = "zh-CN";
+  r.continuous = true;
+  r.interimResults = true;
+  r.maxAlternatives = 1;
+  r.onstart = () => { $("#listening").textContent = "在听你说…（识别中）"; };
+  r.onresult = ev => {
+    let interim = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const t = ev.results[i][0].transcript;
+      if (ev.results[i].isFinal) appendTranscript(t);
+      else interim += t;
+    }
+    $("#listening").textContent = interim ? "…" + interim : "在听你说…（识别中）";
+  };
+  r.onerror = ev => {
+    const m = SR_ERRORS[ev.error] || ("识别出错：" + ev.error);
+    $("#recText").textContent = "语音不可用 · " + m;
+    $("#listening").textContent = "在听你说…";
+    recogOn = false;
+    $("#recBtn").classList.remove("on");
+    stopTimer();
+  };
+  r.onend = () => {
+    if (recogOn) { try { r.start(); } catch (e) { } }
+    else $("#listening").textContent = "在听你说…";
+  };
+  recog = r;
+  return r;
+}
+
+function appendTranscript(text) {
+  const add = (text || "").trim();
+  if (!add) return;
+  const ta = $("#transcript");
+  ta.value = ta.value.replace(/\s+$/, "") + add;
+  ta.scrollTop = ta.scrollHeight;
+  liveTick();
+}
+
+async function toggleRecord() {
+  // 正在录音 → 停止
+  if (recogOn) {
+    recogOn = false;
+    try { recog && recog.stop(); } catch (e) { }
+    stopTimer();
+    $("#recBtn").classList.remove("on");
+    $("#recText").textContent = "已暂停 · 再点继续";
+    return;
+  }
+  const st = srStatus();
+  if (!st.ok) {
+    $("#recText").textContent = st.msg + " · 已改为计时，可直接打字";
+    startTimer();
+    return;
+  }
+  try {
+    ensureRecog().start();
+    recogOn = true;
+    startTimer();
+    $("#recText").textContent = "正在听 · 说完一句可以停一下";
+  } catch (e) {
+    $("#recText").textContent = "启动失败：" + (e.message || e) + " · 可改用打字";
+  }
+}
+
+function srStopSilently() {
+  recogOn = false;
+  try { recog && recog.abort && recog.abort(); } catch (e) { }
+}
 
 async function finishSession() {
   const text = $("#transcript").value.trim();
@@ -659,7 +760,7 @@ async function runDemo(sampleId, hold) {
     S.boot = await api.get("/api/bootstrap");
     updateGoal(S.boot.stats.week_sessions);
   } catch (e) { }
-  $("#recBtn").onclick = () => { if (S.timer) { stopTimer(); $("#recBtn").classList.remove("on"); $("#recText").textContent = "已暂停 · 再点继续计时"; } else { startTimer(); } };
+  $("#recBtn").onclick = toggleRecord;
   $("#btnPickOther").onclick = () => go("map");
   $("#btnReset").onclick = async () => {
     if (!confirm("把演示数据恢复到初始状态？")) return;
