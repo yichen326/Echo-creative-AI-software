@@ -18,9 +18,11 @@ from fastapi.staticfiles import StaticFiles          # noqa: E402
 from pydantic import BaseModel                       # noqa: E402
 
 from engine import diagnose, srs                     # noqa: E402
+from engine import matcher                           # noqa: E402
 from engine.bkt import Mastery                       # noqa: E402
 from engine.kb import KnowledgeBase                  # noqa: E402
 from engine import store                             # noqa: E402
+from engine.text import split_sentences, key_stats       # noqa: E402
 
 KB = KnowledgeBase()
 store.init()
@@ -51,6 +53,13 @@ class FinishReq(BaseModel):
 
 class GradeReq(BaseModel):
     quality: int
+    student_id: str = store.DEMO_STUDENT
+
+
+class AnswerReq(BaseModel):
+    session_id: str
+    probe_id: str
+    text: str
     student_id: str = store.DEMO_STUDENT
 
 
@@ -222,7 +231,7 @@ def session_start(req: StartReq):
         raise HTTPException(404, "no such node")
     sid = store.create_session(req.student_id, req.node_id)
     SESSIONS[sid] = {"node": req.node_id, "started": datetime.now(),
-                     "asked": [], "utter": 0}
+                     "asked": [], "utter": 0, "qa": []}
     m = mastery_of(req.student_id)
     return {
         "session_id": sid,
@@ -246,7 +255,71 @@ def _live(sid, text, student_id, want_probe=True):
             st["asked"].append(p["id"])
             store.add_asked(sid, p["id"])
             hint = p
+            st["last_probe"] = p
     return r, hint
+
+
+@app.post("/api/session/answer")
+def session_answer(req: AnswerReq):
+    """判定学生对一次追问的回答，并给出反馈。"""
+    st = SESSIONS.get(req.session_id)
+    if not st:
+        raise HTTPException(404, "session not found")
+    pr = next((p for p in KB.probes if p["id"] == req.probe_id), None)
+    if not pr:
+        raise HTTPException(404, "probe not found")
+
+    sents = split_sentences(req.text or "")
+    binds = [KB.assertions_by_id[a] for a in pr.get("binds", []) if a in KB.assertions_by_id]
+    cov = matcher.match_coverage(sents, binds) if binds else {"rate": 0.0, "detail": {}}
+    mis = diagnose.detect_misconceptions(KB, sents, st["node"])
+    rate = cov["rate"]
+
+    if mis:
+        verdict = "wrong"
+        feedback = "还是讲反了：" + mis[0]["correction"]
+    elif rate >= 0.7:
+        verdict = "correct"
+        hit = [a for a in binds if cov["detail"][a["id"]]["level"] == "covered"]
+        feedback = "对，就是这层意思。" + ("（你提到了「%s」）" % _short(hit[0]["text"]) if hit else "")
+    elif rate >= 0.3:
+        verdict = "partial"
+        miss_txt = None
+        for a in binds:
+            for g in a.get("keys", []):
+                if key_stats([g], req.text)[0] < 0.5:
+                    miss_txt = g[0]
+                    break
+            if miss_txt:
+                break
+        feedback = ("方向对了，还差「%s」这一点。" % miss_txt) if miss_txt else "方向对了，把话说完整一点。"
+    else:
+        verdict = "wrong"
+        feedback = "还不对。想一想：" + (pr.get("why") or "回到定义再走一遍")
+
+    rec = {"probe_id": pr["id"], "q": pr["q"], "a": req.text,
+           "verdict": verdict, "feedback": feedback, "rate": round(rate, 2)}
+    st.setdefault("qa", []).append(rec)
+    st.pop("last_probe", None)
+
+    # 答错时再补一个探针，答对就让学生继续讲
+    nxt = None
+    if verdict == "wrong":
+        m = mastery_of(req.student_id)
+        r = diagnose.analyze(KB, req.text, st["node"], m, asked_ids=st["asked"])
+        for p in r["probes"]:
+            if p["id"] not in st["asked"]:
+                st["asked"].append(p["id"])
+                store.add_asked(req.session_id, p["id"])
+                nxt = p
+                st["last_probe"] = p
+                break
+    return dict(rec, next=nxt)
+
+
+def _short(s, n=26):
+    s = (s or "").strip().rstrip("。")
+    return s if len(s) <= n else s[:n] + "……"
 
 
 @app.post("/api/session/utter")
@@ -297,6 +370,7 @@ def session_finish(req: FinishReq):
     r["mastery_after"] = round(new_p, 2)
     r["next_due"] = due
     r["interval"] = interval
+    r["qa"] = st.get("qa", [])
     store.finish_session(req.session_id, req.text, r)
     SESSIONS.pop(req.session_id, None)
     return r

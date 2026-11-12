@@ -142,21 +142,31 @@
         </div>
 
         <div class="rail">
-          <div class="c">
-            <div class="ct">小回的疑问<span class="more" id="probeCount">0</span></div>
-            <div id="probes" class="probes">
-              <div class="empty-s">讲述过程中，小回会在你讲得含糊的地方举手。</div>
+          <div class="c dialogc">
+            <div class="ct">和小回的对话
+              <span class="more"><button id="btnSpeak" class="mini" title="让小回把问题读出来">🔊 朗读</button></span>
+            </div>
+            <div id="chat" class="chat">
+              <div class="msg ai">开始讲吧，我听着。讲得含糊的地方我会举手。</div>
+            </div>
+            <div id="answerBox" class="answer-box hidden">
+              <textarea id="answer" rows="2" placeholder="回答小回的问题…（点麦克风可以直接说）"></textarea>
+              <div class="ans-row">
+                <button class="bt p" id="btnAnswer">提交回答</button>
+                <button class="bt s" id="btnSkip">跳过</button>
+              </div>
             </div>
           </div>
           <div class="hint" id="hintBox">
             <b>卡住了？</b> 提示只给一个关键词，不会直接给答案。
             <div id="hintText" class="hint-t"></div>
           </div>
-          <div class="c">
-            <div class="ct">这次要讲到的点<span class="more" id="assertCount">—</span></div>
-            <div class="chips" id="assertChips"></div>
-          </div>
         </div>
+      </div>
+
+      <div class="c chipbar">
+        <div class="ct">这次要讲到的点<span class="more" id="assertCount">—</span></div>
+        <div class="chips" id="assertChips"></div>
       </div>
     </section>
 

@@ -18,8 +18,9 @@ const api = {
 
 const S = {
   boot: null, graph: null, node: null, session: null,
-  report: null, samples: [], asked: new Set(),
-  timer: null, elapsed: 0, typing: false, lastUtter: 0
+  report: null, samples: [], asked: new Set(), seen: new Set(),
+  timer: null, elapsed: 0, typing: false, lastUtter: 0,
+  pending: null, qa: [], speakOn: true
 };
 
 /* ---------------------------------------------------------------- 路由 */
@@ -170,16 +171,30 @@ function renderExplain() {
 
   resetLive();
   $("#btnFinish").onclick = finishSession;
-  $("#btnBackPick").onclick = () => { stopTimer(); go("map"); };
+  $("#btnBackPick").onclick = () => { srStopSilently(); stopTimer(); go("map"); };
+  $("#btnAnswer").onclick = submitAnswer;
+  $("#btnSkip").onclick = skipQuestion;
+  $("#btnSpeak").onclick = () => {
+    S.speakOn = !S.speakOn;
+    $("#btnSpeak").textContent = S.speakOn ? "🔊 朗读" : "🔇 静音";
+    if (!S.speakOn && window.speechSynthesis) speechSynthesis.cancel();
+    else if (S.pending) speak(S.pending.text);
+  };
+  $("#btnSpeak").textContent = S.speakOn ? "🔊 朗读" : "🔇 静音";
+  $("#answer").onkeydown = e => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAnswer(); }
+  };
 }
 
 function resetLive() {
   srStopSilently();
-  stopTimer(); S.elapsed = 0; $("#timer").textContent = "00:00";
+  stopTimer(); S.elapsed = 0; S.pending = null; S.qa = [];
+  $("#timer").textContent = "00:00";
   $("#progText").textContent = `已覆盖 0 / ${S.session?.assertion_count || 0} 点`;
   $("#progBar").style.width = "0%";
-  $("#probes").innerHTML = `<div class="empty-s">讲述过程中，小回会在你讲得含糊的地方举手。</div>`;
-  $("#probeCount").textContent = "0";
+  $("#chat").innerHTML = `<div class="msg ai">开始讲吧，我听着。讲得含糊的地方我会举手。</div>`;
+  $("#answerBox").classList.add("hidden");
+  $("#answer").value = "";
   $$("#assertChips span").forEach(s => s.className = "");
   $("#recBtn").classList.remove("on");
   const st = srStatus();
@@ -187,6 +202,97 @@ function resetLive() {
     ? "点左侧按钮开始说话，也可以直接打字"
     : st.msg + " · 请直接打字，或播放示例";
   $("#listening").textContent = "在听你说…";
+  loadVoices();
+}
+
+/* ---------------- 对话：小回问，学生答 ---------------- */
+function pushChat(who, text, extra) {
+  const box = $("#chat");
+  const d = document.createElement("div");
+  d.className = "msg " + who;
+  d.innerHTML = esc(text) + (extra || "");
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+  return d;
+}
+
+function askProbe(p) {
+  if (!p || S.pending) return;
+  const key = "probe:" + p.id;
+  if (S.seen.has(key)) return;
+  S.seen.add(key);
+  S.pending = p;
+  const el = pushChat("ai", p.text,
+    `<button class="rd" title="读一遍">🔊</button><div class="vd"><span class="tag a">小回问</span><span style="color:var(--ink3)">答一句就好</span></div>`);
+  const btn = el.querySelector(".rd");
+  if (btn) btn.onclick = () => speak(p.text);
+  $("#answerBox").classList.remove("hidden");
+  $("#answer").value = "";
+  $("#answer").focus();
+  if (S.speakOn) speak(p.text);
+}
+
+function warnMis(m) {
+  const key = "mis:" + m.id;
+  if (S.seen.has(key)) return;
+  S.seen.add(key);
+  pushChat("ai", `「${m.sentence}」 这里不太对。${m.correction}`,
+    `<div class="vd"><span class="tag r">讲反了</span></div>`);
+}
+
+async function submitAnswer() {
+  const text = $("#answer").value.trim();
+  if (!text) { $("#answer").focus(); return; }
+  const p = S.pending;
+  if (!p) return;
+  pushChat("me", text);
+  $("#answer").value = "";
+  $("#answerBox").classList.add("hidden");
+  S.pending = null;
+  const btn = $("#btnAnswer"); btn.disabled = true;
+  try {
+    const r = await api.post("/api/session/answer",
+      { session_id: S.session.session_id, probe_id: p.id, text });
+    S.qa.push(r);
+    const tag = r.verdict === "correct" ? ["答对了", ""] : r.verdict === "partial" ? ["答得不全", "a"] : ["还不对", "r"];
+    pushChat("ai", r.feedback, `<div class="vd"><span class="tag ${tag[1]}">${tag[0]}</span><span style="color:var(--ink3)">继续讲下去</span></div>`);
+    if (r.next) setTimeout(() => askProbe(r.next), 900);
+  } catch (e) {
+    pushChat("sys", "提交失败：" + e.message);
+  }
+  btn.disabled = false;
+}
+
+function skipQuestion() {
+  if (!S.pending) return;
+  S.pending = null;
+  $("#answerBox").classList.add("hidden");
+  pushChat("sys", "先跳过，继续讲你的。");
+}
+
+/* ---------------- 朗读 ---------------- */
+let VOICES = [];
+function loadVoices() {
+  if (!("speechSynthesis" in window)) return;
+  VOICES = speechSynthesis.getVoices() || [];
+}
+if ("speechSynthesis" in window) {
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
+function speak(text) {
+  if (!("speechSynthesis" in window) || !text) return;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN";
+    u.rate = 1.02;
+    u.pitch = 1.05;
+    const v = (VOICES.length ? VOICES : speechSynthesis.getVoices() || [])
+      .find(v => /zh[-_]?CN|zh[-_]?Hans|Chinese|Huihui|Xiaoxiao|Yaoyao|Kangkang/i.test(v.lang + " " + v.name));
+    if (v) u.voice = v;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch (e) { }
 }
 
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
@@ -205,25 +311,9 @@ async function liveTick() {
       const id = el.dataset.a;
       el.className = bad.has(id) ? "miss" : cov.has(id) ? "on" : par.has(id) ? "pt" : "";
     });
-    (r.misconceptions || []).forEach(m => addProbe(m.sentence, `讲反了：${m.title}`, "r", "mis:" + m.id));
-    if (r.probe) addProbe(r.probe.text, "追问", "a", "probe:" + r.probe.id);
+    (r.misconceptions || []).forEach(warnMis);
+    if (r.probe) askProbe(r.probe);
   } catch (e) { /* 实时请求失败不打断讲述 */ }
-}
-
-function addProbe(text, label, kind, key) {
-  if (!S.seen) S.seen = new Set();
-  const k = key || String(text).replace(/[？?。！!\s]+/g, "");
-  if (S.seen.has(k)) return;
-  S.seen.add(k);
-  const box = $("#probes");
-  if (box.querySelector(".empty-s")) box.innerHTML = "";
-  const d = document.createElement("div");
-  d.className = "bub";
-  d.innerHTML = `${esc(text)}<div class="bst"><span class="tag ${kind}">${esc(label)}</span>${new Date().toTimeString().slice(0, 5)}</div>`;
-  box.appendChild(d);
-  while (box.children.length > 5) box.removeChild(box.firstChild);
-  $("#probeCount").textContent = box.children.length;
-  box.scrollTop = box.scrollHeight;
 }
 
 async function playSample(sample) {
@@ -318,6 +408,12 @@ function ensureRecog() {
 function appendTranscript(text) {
   const add = (text || "").trim();
   if (!add) return;
+  if (S.pending) {                      // 有待回答的问题：识别结果进答题框
+    const a = $("#answer");
+    a.value += add;
+    a.focus();
+    return;
+  }
   const ta = $("#transcript");
   ta.value = ta.value.replace(/\s+$/, "") + add;
   ta.scrollTop = ta.scrollHeight;
@@ -452,6 +548,20 @@ function renderReport() {
           <div class="qn">↳ 命中的迷思：${esc(first.title)}</div></div>` : ""}
       </div>
     </div>
+    ${(r.qa && r.qa.length) ? `<div class="c">
+      <div class="ct">追问回顾<span class="more">${r.qa.length} 轮问答</span></div>
+      <div style="margin-top:6px">
+        ${r.qa.map(q => {
+          const v = q.verdict === "correct" ? ["答对了", ""] : q.verdict === "partial" ? ["答得不全", "a"] : ["没答对", "r"];
+          return `<div style="padding:9px 0;border-bottom:1px dashed var(--line2)">
+            <div style="font-size:11px;color:var(--ink2)">小回：${esc(q.q)}</div>
+            <div style="font-size:11px;color:var(--green);margin-top:4px">你：${esc(q.a)}</div>
+            <div style="font-size:10px;color:var(--ink3);margin-top:4px;display:flex;gap:6px;align-items:flex-start">
+              <span class="tag ${v[1]}" style="flex:0 0 auto">${v[0]}</span><span>${esc(q.feedback)}</span></div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>` : ""}
   </div>`;
 }
 const dim = (k, v) => `<div class="dm"><em>${k}</em><div class="db"><i style="width:${v}%"></i></div><b>${v}</b></div>`;
@@ -744,13 +854,21 @@ async function renderGrowth() {
 }
 
 /* ---------------------------------------------------------------- 启动 */
-async function runDemo(sampleId, hold) {
+async function runDemo(sampleId, hold, autoAnswer) {
   try {
     const list = await api.get("/api/samples");
     const s = list.find(x => x.id === sampleId) || list[0];
     await startSession(s.node);
     await sleep(300);
     await playSample(s);
+    if (autoAnswer) {
+      await sleep(700);
+      if (S.pending) {
+        $("#answer").value = "不是把水倒掉。排开就是物体浸进去的那部分体积，不是物体的总体积。";
+        await submitAnswer();
+        await sleep(900);
+      }
+    }
     if (!hold) await finishSession();
   } catch (e) { console.error("demo failed", e); }
 }
@@ -771,6 +889,6 @@ async function runDemo(sampleId, hold) {
   };
   const q = new URLSearchParams(location.search);
   const demo = q.get("demo");
-  if (demo) { await runDemo(demo, q.get("hold") === "1"); return; }
+  if (demo) { await runDemo(demo, q.get("hold") === "1", q.get("answer") === "1"); return; }
   show((location.hash || "#today").slice(1));
 })();
