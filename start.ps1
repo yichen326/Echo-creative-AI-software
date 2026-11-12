@@ -10,6 +10,7 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $app = Join-Path $root "应用"
 $logDir = Join-Path $app "logs"
