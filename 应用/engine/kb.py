@@ -29,6 +29,7 @@ class KnowledgeBase:
         for m in self.misconceptions:
             self.mis_by_node.setdefault(m["node"], []).append(m)
         self.probes = raw["probes"]
+        self.glossary = raw.get("glossary", [])
         self.probes_by_node = {}
         for p in self.probes:
             self.probes_by_node.setdefault(p["node"], []).append(p)

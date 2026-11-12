@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles          # noqa: E402
 from pydantic import BaseModel                       # noqa: E402
 
 from engine import diagnose, srs                     # noqa: E402
-from engine import matcher                           # noqa: E402
+from engine import matcher, qa                       # noqa: E402
 from engine.bkt import Mastery                       # noqa: E402
 from engine.kb import KnowledgeBase                  # noqa: E402
 from engine import store                             # noqa: E402
@@ -65,6 +65,26 @@ class AnswerReq(BaseModel):
 
 class SkipReq(BaseModel):
     session_id: str
+
+
+class AskReq(BaseModel):
+    node_id: str = "archimedes"
+    text: str
+    session_id: str = ""
+    last_said: str = ""
+
+
+@app.post("/api/ask")
+def ask(req: AskReq):
+    """朗读/讲解过程中随时提问：分术语解释、展开、举例、原因、暂停、继续。"""
+    if req.node_id not in KB.nodes:
+        raise HTTPException(404, "no such node")
+    r = qa.answer(KB, req.node_id, req.text, req.last_said)
+    st = SESSIONS.get(req.session_id) if req.session_id else None
+    if st is not None:
+        st.setdefault("free_qa", []).append({"q": req.text, "a": r["answer"], "intent": r["intent"]})
+    r["node"] = req.node_id
+    return r
 
 
 # ------------------------------------------------------------------ 工具

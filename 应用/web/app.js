@@ -174,7 +174,7 @@ function renderExplain() {
   $("#btnFinish").onclick = finishSession;
   $("#btnBackPick").onclick = () => { srStopSilently(); stopTimer(); go("map"); };
   $("#btnRef").onclick = () => { S.ref = n.id; go("ref"); };
-  $("#btnAnswer").onclick = submitAnswer;
+  $("#btnAnswer").onclick = submitInput;
   $("#btnSkip").onclick = skipQuestion;
   $("#btnSpeak").onclick = () => {
     S.speakOn = !S.speakOn;
@@ -184,8 +184,9 @@ function renderExplain() {
   };
   $("#btnSpeak").textContent = S.speakOn ? "🔊 朗读" : "🔇 静音";
   $("#answer").onkeydown = e => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAnswer(); }
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitInput(); }
   };
+  $("#answer").onfocus = stopSpeakNow;
 }
 
 function resetLive() {
@@ -194,9 +195,9 @@ function resetLive() {
   $("#timer").textContent = "00:00";
   $("#progText").textContent = `已覆盖 0 / ${S.session?.assertion_count || 0} 点`;
   $("#progBar").style.width = "0%";
-  $("#chat").innerHTML = `<div class="msg ai">开始讲吧，我听着。讲得含糊的地方我会举手。</div>`;
-  $("#answerBox").classList.add("hidden");
+  $("#chat").innerHTML = `<div class="msg ai">开始讲吧，我听着。讲得含糊的地方我会举手；你想问什么也随时问。</div>`;
   $("#answer").value = "";
+  setInputMode(false);
   $$("#assertChips span").forEach(s => s.className = "");
   $("#recBtn").classList.remove("on");
   const st = srStatus();
@@ -208,14 +209,33 @@ function resetLive() {
 }
 
 /* ---------------- 对话：小回问，学生答 ---------------- */
-function pushChat(who, text, extra) {
-  const box = $("#chat");
+function pushChatTo(box, who, text, extra) {
+  if (!box) return null;
   const d = document.createElement("div");
   d.className = "msg " + who;
   d.innerHTML = esc(text) + (extra || "");
   box.appendChild(d);
   box.scrollTop = box.scrollHeight;
   return d;
+}
+function pushChat(who, text, extra) { return pushChatTo($("#chat"), who, text, extra); }
+
+function setInputMode(answering) {
+  const ta = $("#answer"), btn = $("#btnAnswer"), skip = $("#btnSkip");
+  $("#answerBox").classList.remove("hidden");
+  if (answering) {
+    ta.placeholder = "回答小回的问题…（也可以直接说）";
+    btn.textContent = "提交回答";
+    skip.classList.remove("hidden");
+  } else {
+    ta.placeholder = "有疑问随时问，例如：排开是什么意思 / 再讲一遍 / 举个例子";
+    btn.textContent = "问一句";
+    skip.classList.add("hidden");
+  }
+}
+
+function stopSpeakNow() {
+  try { if ("speechSynthesis" in window) speechSynthesis.cancel(); } catch (e) { }
 }
 
 function askProbe(p) {
@@ -234,7 +254,6 @@ function askProbe(p) {
     return;
   }
 
-  // 「追问」：学生自己提到了，但说得含糊
   if (S.pending) return;
   const key = "probe:" + p.id;
   if (S.seen.has(key)) return;
@@ -247,7 +266,7 @@ function askProbe(p) {
      <div class="vd"><span class="tag a">小回问</span><span style="color:var(--ink3)">答一句就好</span></div>`);
   el.querySelector(".rd").onclick = () => speakSeq([p.lead, p.text].filter(Boolean), true);
 
-  $("#answerBox").classList.remove("hidden");
+  setInputMode(true);
   $("#answer").value = "";
   $("#answer").focus();
   speakSeq([p.lead, p.text].filter(Boolean), true);
@@ -262,15 +281,22 @@ function warnMis(m) {
     `<div class="vd"><span class="tag r">讲反了</span></div>`);
 }
 
-async function submitAnswer() {
-  const text = $("#answer").value.trim();
-  if (!text) { $("#answer").focus(); return; }
+/** 统一入口：有待答问题就判回答，否则当自由提问 */
+async function submitInput() {
+  const ta = $("#answer");
+  const text = ta.value.trim();
+  if (!text) { ta.focus(); return; }
+  ta.value = "";
+  if (S.pending) return submitAnswer(text);
+  return askFree(text, $("#chat"));
+}
+
+async function submitAnswer(text) {
   const p = S.pending;
-  if (!p) return;
+  if (!p || !text) return;
   pushChat("me", text);
-  $("#answer").value = "";
-  $("#answerBox").classList.add("hidden");
   S.pending = null;
+  setInputMode(false);
   const btn = $("#btnAnswer"); btn.disabled = true;
   try {
     const r = await api.post("/api/session/answer",
@@ -285,11 +311,31 @@ async function submitAnswer() {
   btn.disabled = false;
 }
 
+/** 自由提问：随时打断朗读，从知识库里找答案 */
+async function askFree(text, container) {
+  stopSpeakNow();
+  pushChatTo(container, "me", text);
+  const nodeId = (S.session && S.session.node.id) || (S.refNode && S.refNode.id) || "archimedes";
+  try {
+    const r = await api.post("/api/ask", {
+      node_id: nodeId, text,
+      session_id: S.session ? S.session.session_id : "",
+      last_said: S.lastSpoken || ""
+    });
+    const el = pushChatTo(container, "ai", r.answer,
+      `<button class="rd" title="读一遍">🔊</button><div class="vd"><span class="tag a">${esc(r.label)}</span></div>`);
+    el.querySelector(".rd").onclick = () => speakSeq(r.speak);
+    if (S.speakOn) speakSeq(r.speak);
+    return r;
+  } catch (e) {
+    pushChatTo(container, "sys", "没听清，再说一次？");
+  }
+}
+
 function skipQuestion() {
   if (!S.pending) return;
-  const p = S.pending;
   S.pending = null;
-  $("#answerBox").classList.add("hidden");
+  setInputMode(false);
   pushChat("sys", "先跳过，继续讲你的。");
   api.post("/api/session/skip", { session_id: S.session.session_id }).catch(() => { });
 }
@@ -364,7 +410,9 @@ function speakSeq(parts, question) {
   const next = () => {
     if (i >= clean.length) return;
     const isLast = i === clean.length - 1;
-    const u = new SpeechSynthesisUtterance(clean[i++]);
+    const part = clean[i++];
+    S.lastSpoken = part;
+    const u = new SpeechSynthesisUtterance(part);
     u.lang = "zh-CN";
     if (v) u.voice = v;
     u.volume = 1;
@@ -386,6 +434,27 @@ function speakParagraph(text) {
 }
 
 function speak(text) { speakSeq([text]); }
+
+/** 一次性语音输入：点一下图标开始听，说完自动填进输入框 */
+function listenOnce(inputEl, onText) {
+  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Ctor) { alert("这个浏览器不支持语音识别，直接打字也行"); return; }
+  const r = new Ctor();
+  r.lang = "zh-CN";
+  r.interimResults = false;
+  r.maxAlternatives = 1;
+  r.continuous = false;
+  let got = false;
+  r.onresult = e => {
+    got = true;
+    const t = (e.results[0] && e.results[0][0].transcript || "").trim();
+    if (!t) return;
+    inputEl.value = t;
+    onText && onText(t);
+  };
+  r.onerror = e => { if (!got) alert("没听清：" + (SR_ERRORS[e.error] || e.error)); };
+  try { r.start(); } catch (e) { alert("启动失败：" + (e.message || e)); }
+}
 
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -529,6 +598,7 @@ async function toggleRecord() {
     return;
   }
   try {
+    stopSpeakNow();
     ensureRecog().start();
     recogOn = true;
     startTimer();
@@ -868,7 +938,15 @@ async function renderRef() {
     S.refNode = n;
     $("#refEyebrow").textContent = `${n.grade} · ${n.chapter}`;
     $("#refTitle").textContent = n.name;
-    $("#btnRefSpeak").onclick = () => speakParagraph(n.reference);
+    $("#btnRefSpeak").onclick = () => {
+      if (S.reading) { stopSpeakNow(); S.reading = false; $("#btnRefSpeak").textContent = "🔊 读一遍"; return; }
+      S.reading = true;
+      $("#btnRefSpeak").textContent = "⏹ 停止";
+      speakParagraph(n.reference);
+      const total = 400 + n.reference.length * 180;
+      clearTimeout(S.readTimer);
+      S.readTimer = setTimeout(() => { S.reading = false; $("#btnRefSpeak").textContent = "🔊 读一遍"; }, total);
+    };
     $("#btnRefStart").onclick = () => startSession(n.id);
     $("#refBody").innerHTML = `
       <div class="c refcard">
@@ -876,6 +954,17 @@ async function renderRef() {
         <div class="reftext">${esc(n.reference)}</div>
         <div class="refex"><b style="color:var(--green)">举个例子：</b>${esc(n.example)}</div>
       </div>
+
+      <div class="c" style="margin-top:12px">
+        <div class="ct">有疑问随时问<span class="more">朗读到一半也可以打断</span></div>
+        <div class="askrow">
+          <input id="askInput" type="text" placeholder="例如：排开是什么意思 · 这一句再详细讲讲 · 举个例子">
+          <button class="bt" id="btnAskMic" title="用麦克风提问">🎤</button>
+          <button class="bt p" id="btnAsk">问一句</button>
+        </div>
+        <div id="askLog" class="asklog"></div>
+      </div>
+
       <div class="ref2">
         <div class="c">
           <div class="ct">必须讲到的点<span class="more">${n.assertions.length} 条</span></div>
@@ -890,6 +979,22 @@ async function renderRef() {
             <div class="mc">${esc(m.correction)}</div></div>`).join("") || '<div class="empty-s">这个知识点暂未收录常见错误</div>'}
         </div>
       </div>`;
+
+    const inp = $("#askInput");
+    const log = $("#askLog");
+    const send = async () => {
+      const t = inp.value.trim();
+      if (!t) { inp.focus(); return; }
+      inp.value = "";
+      await askFree(t, log);
+    };
+    $("#btnAsk").onclick = send;
+    inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); send(); } };
+    inp.onfocus = stopSpeakNow;
+    $("#btnAskMic").onclick = () => {
+      stopSpeakNow();
+      listenOnce(inp, t => { inp.value = t; send(); });
+    };
   } catch (e) {
     $("#refBody").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`;
   }
@@ -995,7 +1100,7 @@ async function runDemo(sampleId, hold, autoAnswer) {
       await sleep(700);
       if (S.pending) {
         $("#answer").value = "不是把水倒掉。排开就是物体浸进去的那部分体积，不是物体的总体积。";
-        await submitAnswer();
+        await submitInput();
         await sleep(900);
       }
     }

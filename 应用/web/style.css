@@ -164,6 +164,11 @@ select.mini{max-width:104px;padding:3px 4px}
 .misrow{border-left:3px solid var(--rs);padding:9px 13px;margin-top:9px;background:#FDFAF8;border-radius:0 8px 8px 0}
 .misrow .mt{font-size:12px;color:var(--red);font-weight:600}
 .misrow .mc{font-size:11px;color:var(--ink2);margin-top:5px;line-height:1.75}
+.askrow{display:flex;gap:8px;margin-top:10px}
+.askrow input{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:var(--sans);font-size:12.5px;outline:none;background:#FCFBF8;color:var(--ink)}
+.askrow input:focus{border-color:#CBDDD3;background:#fff}
+.asklog{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:380px;overflow-y:auto}
+.asklog:empty{display:none}
 .ref2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 @media (max-width:900px){.ref2{grid-template-columns:1fr}}
 .bub{background:#fff;border:1px solid var(--line);border-radius:12px 12px 12px 3px;padding:10px 12px;font-size:11.5px;line-height:1.65;color:var(--ink2);animation:pop .35s ease}
