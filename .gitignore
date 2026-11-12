@@ -22,3 +22,6 @@ desktop.ini
 鏋勫缓/_*.pdf
 鏋勫缓/prev*/
 鏋勫缓/qa*/
+
+# 本地截图缓存
+应用/web/_shots/

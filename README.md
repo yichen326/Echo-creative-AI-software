@@ -6,6 +6,18 @@
 
 > 把 `做题 — 判题 — 推题` 的循环，换成 `讲述 — 追问 — 溯源 — 复述` 的循环。
 
+![今日](docs/shots/today.png)
+
+## 界面
+
+| 讲解台 | 体检报告 |
+|---|---|
+| ![讲解台](docs/shots/explain.png) | ![报告](docs/shots/report.png) |
+
+| 知识地图 | 复述计划 | 成长档案 |
+|---|---|---|
+| ![地图](docs/shots/map.png) | ![复述](docs/shots/review.png) | ![成长](docs/shots/growth.png) |
+
 ---
 
 ## 快速开始

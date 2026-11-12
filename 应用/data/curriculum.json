@@ -12,84 +12,96 @@
       "name": "质量与密度",
       "grade": "八年级上",
       "chapter": "第六章 质量与密度",
-      "summary": "密度是物质的特性，ρ=m/V，它把质量和体积连在一起。"
+      "summary": "密度是物质的特性，ρ=m/V，它把质量和体积连在一起。",
+      "short": "密度"
     },
     {
       "id": "density_measure",
       "name": "密度测量（排水法）",
       "grade": "八年级上",
       "chapter": "第六章 质量与密度",
-      "summary": "形状不规则的固体，用排水法量体积：V物 = V总 − V水。"
+      "summary": "形状不规则的固体，用排水法量体积：V物 = V总 − V水。",
+      "short": "排水法"
     },
     {
       "id": "solid_pressure",
       "name": "固体压强",
       "grade": "八年级下",
       "chapter": "第九章 压强",
-      "summary": "压强是单位面积上的压力，p=F/S；压力不一定等于重力。"
+      "summary": "压强是单位面积上的压力，p=F/S；压力不一定等于重力。",
+      "short": "固体压强"
     },
     {
       "id": "liquid_pressure",
       "name": "液体压强",
       "grade": "八年级下",
       "chapter": "第九章 压强",
-      "summary": "液体内部压强 p=ρ液gh，h 是到液面的竖直距离。"
+      "summary": "液体内部压强 p=ρ液gh，h 是到液面的竖直距离。",
+      "short": "液体压强"
     },
     {
       "id": "atmo_pressure",
       "name": "大气压强",
       "grade": "八年级下",
       "chapter": "第九章 压强",
-      "summary": "大气压约 1.013×10⁵ Pa，随高度增加而减小。"
+      "summary": "大气压约 1.013×10⁵ Pa，随高度增加而减小。",
+      "short": "大气压强"
     },
     {
       "id": "force_balance",
       "name": "二力平衡",
       "grade": "八年级下",
       "chapter": "第八章 运动和力",
-      "summary": "同体、等大、反向、共线，四者齐备物体才保持静止或匀速直线运动。"
+      "summary": "同体、等大、反向、共线，四者齐备物体才保持静止或匀速直线运动。",
+      "short": "二力平衡"
     },
     {
       "id": "force_synthesis",
       "name": "力的合成",
       "grade": "八年级下",
       "chapter": "第七章 力",
-      "summary": "同一直线上的两个力可以等效为一个合力。"
+      "summary": "同一直线上的两个力可以等效为一个合力。",
+      "short": "力的合成"
     },
     {
       "id": "spring_scale",
       "name": "弹簧测力计",
       "grade": "八年级下",
       "chapter": "第七章 力",
-      "summary": "弹性限度内伸长量与拉力成正比；称重法 F浮 = G − F示。"
+      "summary": "弹性限度内伸长量与拉力成正比；称重法 F浮 = G − F示。",
+      "short": "测力计"
     },
     {
       "id": "buoyancy_concept",
       "name": "浮力的产生",
       "grade": "九年级",
       "chapter": "第十章 浮力",
-      "summary": "浮力来自上下表面的液体压力差，方向竖直向上。"
+      "summary": "浮力来自上下表面的液体压力差，方向竖直向上。",
+      "short": "浮力产生"
     },
     {
       "id": "archimedes",
       "name": "阿基米德原理",
       "grade": "九年级",
       "chapter": "第十章 浮力",
-      "summary": "F浮 = G排 = ρ液 g V排，只与液体密度和排开体积有关。"
+      "summary": "F浮 = G排 = ρ液 g V排，只与液体密度和排开体积有关。",
+      "short": "阿基米德"
     },
     {
       "id": "float_sink",
       "name": "物体浮沉条件",
       "grade": "九年级",
       "chapter": "第十章 浮力",
-      "summary": "比较浮力与重力、液体密度与物体密度，判断上浮、悬浮还是下沉。"
+      "summary": "比较浮力与重力、液体密度与物体密度，判断上浮、悬浮还是下沉。",
+      "short": "浮沉条件"
     },
     {
       "id": "buoyancy_calc",
       "name": "浮力综合计算",
       "grade": "九年级",
       "chapter": "第十章 浮力",
-      "summary": "称重法、压力差法、阿基米德法、平衡法，先判状态再选公式。"
+      "summary": "称重法、压力差法、阿基米德法、平衡法，先判状态再选公式。",
+      "short": "浮力计算"
     }
   ],
   "edges": [

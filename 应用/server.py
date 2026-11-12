@@ -62,7 +62,8 @@ def mastery_of(sid):
 def node_public(nid, mastery):
     n = KB.nodes[nid]
     return {
-        "id": nid, "name": n["name"], "grade": n["grade"],
+        "id": nid, "name": n["name"], "short": n.get("short", n["name"]),
+        "grade": n["grade"],
         "chapter": n["chapter"], "summary": n["summary"],
         "mastery": round(mastery.get(nid), 2),
         "n_assertions": len(KB.assertions_of(nid)),
@@ -152,6 +153,9 @@ def bootstrap(student_id: str = store.DEMO_STUDENT):
         "recent": [{"id": s["id"], "node": KB.node_name(s["node_id"]),
                     "date": s["ended_at"][:10], "total": s["total"]} for s in recent],
         "weak_chain": weak_chain(m),
+        "weak_nodes": [{"id": n, "name": KB.node_name(n), "mastery": round(p, 2),
+                        "status": status_of(p)}
+                       for p, n in sorted((m.get(x), x) for x in KB.nodes if 0.15 < m.get(x) < 0.68)[:4]],
     }
 
 
@@ -254,6 +258,9 @@ def session_utter(req: UtterReq):
         "covered": len(cov["covered"]),
         "partial": len(cov["partial"]),
         "total": len(cov["covered"]) + len(cov["partial"]) + len(cov["missed"]),
+        "covered_ids": [x["id"] for x in cov["covered"]],
+        "partial_ids": [x["id"] for x in cov["partial"]],
+        "contradicted_ids": [x["id"] for x in cov["missed"] if x.get("contradicted")],
         "misconceptions": r["misconceptions"],
         "probe": hint,
     }
