@@ -230,8 +230,9 @@ async function openRefDrawer() {
     $("#drBody").innerHTML =
       '<div class="dsec"><h4>标准讲解</h4><div class="dref">' + esc(n.reference) + '</div>' +
       '<div class="refex" style="margin-top:10px">' + esc(n.example) + '</div></div>' +
-      '<div class="dsec"><h4>必须讲到的点 · ' + n.assertions.length + ' 条</h4><ul class="dlist">' +
-      n.assertions.map(a => '<li>' + esc(a.text) + '<b>' + a.w.toFixed(1) + '</b></li>').join("") +
+      '<div class="dsec"><h4>必须讲到的点 · ' + n.assertions.length + ' 条　<span style="color:#B0A897">点一条，让小回拿它问你</span></h4><ul class="dlist">' +
+      n.assertions.map(a => '<li class="pick" data-a="' + a.id + '"><span class="a">' + esc(a.text) +
+        '</span><b>' + a.w.toFixed(1) + '</b><span class="asktag">问这句</span></li>').join("") +
       '</ul></div>' +
       '<div class="dsec"><h4>常见错误 · ' + n.misconceptions.length + ' 条</h4>' +
       n.misconceptions.map(m => '<div class="dmis"><div class="t">✕ ' + esc(m.title) +
@@ -239,12 +240,34 @@ async function openRefDrawer() {
       '</div>';
     $("#refDrawer").classList.add("on");
     S.drawerOpen = true;
+    $$("#drBody .pick").forEach(li => {
+      li.onclick = () => manualAsk(li.dataset.a);
+    });
   } catch (e) { alert("加载失败：" + e.message); }
 }
 function closeRefDrawer() {
   const d = $("#refDrawer");
   if (d) d.classList.remove("on");
   S.drawerOpen = false;
+}
+
+/** 手动挑一条断言，让小回拿它来问 */
+async function manualAsk(assertionId) {
+  if (!S.session) { alert("先开始一次讲解，小回才有话可说。"); return; }
+  if (S.pending) {
+    closeRefDrawer();
+    pushChat("sys", "先回答完小回上一个问题，再挑新的。");
+    return;
+  }
+  try {
+    const p = await api.post("/api/session/probe_for",
+      { session_id: S.session.session_id, assertion_id: assertionId });
+    closeRefDrawer();
+    pushChat("sys", "你从参考答案里挑了一条，让小回问你。");
+    askProbe(p);
+  } catch (e) {
+    alert("失败了：" + e.message);
+  }
 }
 
 function pushChatTo(box, who, text, extra) {

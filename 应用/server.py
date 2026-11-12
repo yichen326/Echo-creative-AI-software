@@ -67,6 +67,38 @@ class SkipReq(BaseModel):
     session_id: str
 
 
+class ProbeForReq(BaseModel):
+    session_id: str
+    assertion_id: str
+    student_id: str = store.DEMO_STUDENT
+
+
+@app.post("/api/session/probe_for")
+def session_probe_for(req: ProbeForReq):
+    """学生在参考答案里挑一条断言，让小回就这一条发问。"""
+    st = SESSIONS.get(req.session_id)
+    if not st:
+        raise HTTPException(404, "session not found")
+    a = KB.assertions_by_id.get(req.assertion_id)
+    if not a:
+        raise HTTPException(404, "assertion not found")
+
+    cands = [p for p in KB.probes_by_assertion.get(req.assertion_id, [])
+             if p["id"] not in st["asked"]]
+    if cands:
+        pid, q = cands[0]["id"], cands[0]["q"]
+    else:
+        pid = "manual:" + req.assertion_id
+        q = "这一点能用你自己的话再讲一遍吗？"
+    if pid not in st["asked"]:
+        st["asked"].append(pid)
+    st.setdefault("manual", {})[pid] = {"q": q, "binds": [req.assertion_id]}
+    st["pending_probe"] = pid
+    return {"id": pid, "kind": "ask", "lead": a["text"].rstrip("。"),
+            "text": q, "binds": [req.assertion_id],
+            "why": "你从参考答案里挑的", "gain": 1.0, "manual": True}
+
+
 class AskReq(BaseModel):
     node_id: str = "archimedes"
     text: str
@@ -306,6 +338,8 @@ def session_answer(req: AnswerReq):
         raise HTTPException(404, "session not found")
     pr = next((p for p in KB.probes if p["id"] == req.probe_id), None)
     if not pr:
+        pr = (st.get("manual") or {}).get(req.probe_id)
+    if not pr:
         raise HTTPException(404, "probe not found")
 
     sents = split_sentences(req.text or "")
@@ -336,7 +370,7 @@ def session_answer(req: AnswerReq):
         verdict = "wrong"
         feedback = "还不对。想一想：" + (pr.get("why") or "回到定义再走一遍")
 
-    rec = {"probe_id": pr["id"], "q": pr["q"], "a": req.text,
+    rec = {"probe_id": req.probe_id, "q": pr["q"], "a": req.text,
            "verdict": verdict, "feedback": feedback, "rate": round(rate, 2)}
     st.setdefault("qa", []).append(rec)
     st.pop("last_probe", None)
