@@ -30,11 +30,17 @@ FIG_CAP = {
     7: "图 8　知识地图",
     8: "图 9　复述计划",
     9: "图 10　成长档案",
+    10: "图 11　首页实现效果",
+    11: "图 12　讲解台实现效果",
+    12: "图 13　体检报告实现效果",
+    13: "图 14　知识地图实现效果",
+    14: "图 15　复述计划实现效果",
+    15: "图 16　成长档案实现效果",
 }
 TBLW = [
     ([2.2, 3.0, 3.0, 3.0, 3.2], "表 1　四类产品的对比"),
-    ([2.4, 4.1, 2.6, 2.9, 2.4], "表 2　各环节资源占用与耗时（i5-8250U 实测估算）"),
-    ([2.5, 6.3, 5.6], "表 3　技术选型"),
+    ([2.4, 4.3, 2.4, 2.7, 2.2], "表 2　各环节实现方式与耗时"),
+    ([2.4, 6.4, 5.6], "表 3　技术选型"),
     ([2.4, 4.9, 3.2, 3.9], "表 4　数据资产清单"),
     ([2.2, 5.4, 6.8], "表 5　五周开发计划"),
     ([2.6, 4.3, 7.5], "表 6　视觉规范"),
@@ -246,13 +252,13 @@ def build(path, pages=None):
         p = doc.add_paragraph()
         pf = p.paragraph_format
         pf.line_spacing_rule = WD_LINE_SPACING.EXACTLY
-        pf.line_spacing = Pt(19 if kind == "h1" else 15)
-        pf.space_before = Pt(6 if kind == "h1" else 0)
+        pf.line_spacing = Pt(18 if kind == "h1" else 13)
+        pf.space_before = Pt(5 if kind == "h1" else 0)
         pf.space_after = Pt(0)
         pf.first_line_indent = Pt(0)
         pf.left_indent = Cm(0 if kind == "h1" else 0.85)
         pf.tab_stops.add_tab_stop(Cm(14.4), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
-        set_font(p.add_run(txt), size=11.5 if kind == "h1" else 9.5, bold=(kind == "h1"))
+        set_font(p.add_run(txt), size=11.5 if kind == "h1" else 9.2, bold=(kind == "h1"))
         p.add_run("\t")
         set_font(p.runs[-1], size=9.5)
         set_font(p.add_run(str(pages.get(txt, ""))), size=9.5)
