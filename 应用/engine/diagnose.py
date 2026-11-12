@@ -259,7 +259,9 @@ def analyze(kb, text, node_id, mastery, asked_ids=None):
     scores = score_dimensions(sentences, cov, mis, node_id, kb)
     roots = root_causes(kb, node_id, mastery, mis)
 
-    picked = probe_mod.choose(kb, node_id, cov["detail"], asked_ids=asked_ids, limit=2)
+    picked = probe_mod.choose(kb, node_id, cov["detail"], asked_ids=asked_ids,
+                              limit=2, char_count=len(text or ""),
+                              n_units=cov.get("n_units", 0))
     probes = [probe_mod.render(kb, node_id, it) for it in picked]
 
     by_id = {a["id"]: a for a in assertions}

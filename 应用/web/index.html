@@ -108,6 +108,7 @@
         </div>
         <div class="ph-act">
           <span class="tmr" id="timer">00:00</span>
+          <button class="bt" id="btnRef">参考答案</button>
           <button class="bt" id="btnBackPick">重新选点</button>
           <button class="bt p" id="btnFinish">结束并生成报告</button>
         </div>
@@ -143,8 +144,10 @@
 
         <div class="rail">
           <div class="c dialogc">
-            <div class="ct">和小回的对话
-              <span class="more"><button id="btnSpeak" class="mini" title="让小回把问题读出来">🔊 朗读</button></span>
+            <div class="ct">和小回的对话</div>
+            <div class="chat-tools">
+              <select id="voiceSel" class="mini" title="选择小回的声音"></select>
+              <button id="btnSpeak" class="mini" title="让小回把问题读出来">🔊 朗读</button>
             </div>
             <div id="chat" class="chat">
               <div class="msg ai">开始讲吧，我听着。讲得含糊的地方我会举手。</div>
@@ -221,6 +224,22 @@
         <div class="ph-act"><button class="bt p" id="btnReviewStart">开始今日复述</button></div>
       </div>
       <div id="reviewBody"></div>
+    </section>
+
+    <!-- ---------- 知识点参考 ---------- -->
+    <section class="view" id="view-ref">
+      <div class="ph">
+        <div>
+          <div class="eyebrow" id="refEyebrow">—</div>
+          <h1 id="refTitle">知识点参考</h1>
+          <div class="sub">标准讲解 · 必讲要点 · 常见错误</div>
+        </div>
+        <div class="ph-act">
+          <button class="bt" id="btnRefSpeak">🔊 读一遍</button>
+          <button class="bt p" id="btnRefStart">按这个讲一遍</button>
+        </div>
+      </div>
+      <div id="refBody"></div>
     </section>
 
     <!-- ---------- 成长档案 ---------- -->

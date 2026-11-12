@@ -102,6 +102,7 @@ def match_coverage(sentences, assertions):
                 if score[i][j] > cur["score"]:
                     cur["score"] = score[i][j]
                     cur["evidence"] = units[i][2]
+                    cur["u"] = i          # 命中的匹配单元序号，用于判断「是否刚说过」
                     cur["key_hit"] = key_stats(assertions[j].get("keys", []), units[i][1])[0]
                     cur["level"] = "covered" if score[i][j] >= COVERED else "partial"
         # 支撑子句计数：判断「讲透了没有」
@@ -126,5 +127,6 @@ def match_coverage(sentences, assertions):
         "covered": covered,
         "partial": partial,
         "missed": missed,
+        "n_units": n_s,
         "detail": result,
     }

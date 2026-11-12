@@ -33,7 +33,8 @@ function show(id) {
   $$(".nv").forEach(n => n.classList.toggle("on", n.dataset.go === id));
   $("#main").scrollTop = 0;
   ({ today: renderToday, explain: renderExplain, report: renderReport,
-     map: renderMap, review: renderReview, growth: renderGrowth }[id] || renderToday)();
+     map: renderMap, review: renderReview, growth: renderGrowth,
+     ref: renderRef }[id] || renderToday)();
 }
 window.addEventListener("hashchange", () => show((location.hash || "#today").slice(1)));
 document.addEventListener("click", e => {
@@ -172,6 +173,7 @@ function renderExplain() {
   resetLive();
   $("#btnFinish").onclick = finishSession;
   $("#btnBackPick").onclick = () => { srStopSilently(); stopTimer(); go("map"); };
+  $("#btnRef").onclick = () => { S.ref = n.id; go("ref"); };
   $("#btnAnswer").onclick = submitAnswer;
   $("#btnSkip").onclick = skipQuestion;
   $("#btnSpeak").onclick = () => {
@@ -217,26 +219,46 @@ function pushChat(who, text, extra) {
 }
 
 function askProbe(p) {
-  if (!p || S.pending) return;
+  if (!p) return;
+
+  // 「提醒」：学生还没讲到这一点，只提示，不提问
+  if (p.kind === "hint") {
+    const key = "hint:" + p.id;
+    if (S.seen.has(key)) return;
+    S.seen.add(key);
+    const line = `你还没讲到这一点：${p.lead}。`;
+    const el = pushChat("ai", line,
+      `<button class="rd" title="读一遍">🔊</button><div class="vd"><span class="tag a">提醒</span><span style="color:var(--ink3)">补一句会更完整</span></div>`);
+    el.querySelector(".rd").onclick = () => speakSeq([line]);
+    speakSeq([line]);
+    return;
+  }
+
+  // 「追问」：学生自己提到了，但说得含糊
+  if (S.pending) return;
   const key = "probe:" + p.id;
   if (S.seen.has(key)) return;
   S.seen.add(key);
   S.pending = p;
-  const el = pushChat("ai", p.text,
-    `<button class="rd" title="读一遍">🔊</button><div class="vd"><span class="tag a">小回问</span><span style="color:var(--ink3)">答一句就好</span></div>`);
-  const btn = el.querySelector(".rd");
-  if (btn) btn.onclick = () => speak(p.text);
+
+  const lead = p.lead ? `<div class="lead">标准说法：${esc(p.lead)}。</div>` : "";
+  const el = pushChat("ai", "",
+    `${lead}<div class="qtext">${esc(p.text)}</div><button class="rd" title="读一遍">🔊</button>
+     <div class="vd"><span class="tag a">小回问</span><span style="color:var(--ink3)">答一句就好</span></div>`);
+  el.querySelector(".rd").onclick = () => speakSeq([p.lead, p.text].filter(Boolean), true);
+
   $("#answerBox").classList.remove("hidden");
   $("#answer").value = "";
   $("#answer").focus();
-  if (S.speakOn) speak(p.text);
+  speakSeq([p.lead, p.text].filter(Boolean), true);
 }
 
 function warnMis(m) {
   const key = "mis:" + m.id;
   if (S.seen.has(key)) return;
   S.seen.add(key);
-  pushChat("ai", `「${m.sentence}」 这里不太对。${m.correction}`,
+  const shortFix = String(m.correction || "").split("。")[0] + "。";
+  pushChat("ai", `「${m.sentence}」 这里不太对。${shortFix}`,
     `<div class="vd"><span class="tag r">讲反了</span></div>`);
 }
 
@@ -265,35 +287,105 @@ async function submitAnswer() {
 
 function skipQuestion() {
   if (!S.pending) return;
+  const p = S.pending;
   S.pending = null;
   $("#answerBox").classList.add("hidden");
   pushChat("sys", "先跳过，继续讲你的。");
+  api.post("/api/session/skip", { session_id: S.session.session_id }).catch(() => { });
 }
 
-/* ---------------- 朗读 ---------------- */
+/* ---------------- 朗读：挑顺耳的中文音色，分句读 ---------------- */
 let VOICES = [];
+try { S.voiceURI = localStorage.getItem("echo.voice") || ""; } catch (e) { }
+
 function loadVoices() {
   if (!("speechSynthesis" in window)) return;
   VOICES = speechSynthesis.getVoices() || [];
+  fillVoiceSelect();
 }
 if ("speechSynthesis" in window) {
   loadVoices();
   speechSynthesis.onvoiceschanged = loadVoices;
 }
-function speak(text) {
-  if (!("speechSynthesis" in window) || !text) return;
-  try {
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "zh-CN";
-    u.rate = 1.02;
-    u.pitch = 1.05;
-    const v = (VOICES.length ? VOICES : speechSynthesis.getVoices() || [])
-      .find(v => /zh[-_]?CN|zh[-_]?Hans|Chinese|Huihui|Xiaoxiao|Yaoyao|Kangkang/i.test(v.lang + " " + v.name));
-    if (v) u.voice = v;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
-  } catch (e) { }
+
+function zhVoices() {
+  return VOICES.filter(v => /^zh|Chinese|中文|普通话/i.test((v.lang || "") + " " + (v.name || "")));
 }
+
+function voiceScore(v) {
+  const n = (v.name || "").toLowerCase();
+  let s = 0;
+  if (/natural|online|neural/.test(n)) s += 100;                       // Edge 的神经网络音色
+  if (/xiaoxiao|xiaoyi|yunxi|yunjian|yunyang|xiaobei|xiaomo|yunxia/.test(n)) s += 70;
+  if (/zh[-_]?cn|zh[-_]?hans|cmn/i.test(v.lang || "")) s += 25;
+  if (/huihui|yaoyao|kangkang/.test(n)) s += 5;                        // 老 SAPI，机械感强
+  if (v.localService === false) s += 10;                               // 在线音色通常更自然
+  return s;
+}
+
+function pickVoice() {
+  if (!VOICES.length) VOICES = (speechSynthesis.getVoices() || []);
+  const list = zhVoices();
+  if (!list.length) return null;
+  if (S.voiceURI) {
+    const hit = list.find(v => v.voiceURI === S.voiceURI);
+    if (hit) return hit;
+  }
+  return list.slice().sort((a, b) => voiceScore(b) - voiceScore(a))[0];
+}
+
+const shortVoiceName = n => (n || "").replace(/^Microsoft\s*/i, "").replace(/\s*-\s*Chinese.*$/i, "").replace(/\s*\(.*?\)\s*/g, " ").trim() || n;
+
+function fillVoiceSelect() {
+  const sel = $("#voiceSel");
+  if (!sel) return;
+  const zs = zhVoices().sort((a, b) => voiceScore(b) - voiceScore(a));
+  if (!zs.length) { sel.innerHTML = `<option>无中文音色</option>`; sel.disabled = true; return; }
+  sel.innerHTML = zs.map(v => `<option value="${esc(v.voiceURI)}">${esc(shortVoiceName(v.name))}</option>`).join("");
+  const best = pickVoice();
+  if (best) sel.value = best.voiceURI;
+  sel.onchange = () => {
+    S.voiceURI = sel.value;
+    try { localStorage.setItem("echo.voice", S.voiceURI); } catch (e) { }
+    speakSeq(["好，我用这个声音陪你讲。"]);
+  };
+}
+
+/** 按句读，句间留呼吸，问句音调略扬——减少机械感 */
+function speakSeq(parts, question) {
+  if (!S.speakOn || !("speechSynthesis" in window)) return;
+  const clean = (parts || []).filter(Boolean);
+  if (!clean.length) return;
+  const v = pickVoice();
+  try {
+    speechSynthesis.cancel();
+  } catch (e) { return; }
+  let i = 0;
+  const next = () => {
+    if (i >= clean.length) return;
+    const isLast = i === clean.length - 1;
+    const u = new SpeechSynthesisUtterance(clean[i++]);
+    u.lang = "zh-CN";
+    if (v) u.voice = v;
+    u.volume = 1;
+    u.rate = question && isLast ? 1.08 : 1.0;
+    u.pitch = question && isLast ? 1.18 : 1.07;
+    u.onend = () => { if (i < clean.length) setTimeout(next, 260); };
+    u.onerror = () => { };
+    speechSynthesis.speak(u);
+  };
+  next();
+}
+
+/** 把一段文字按句号切开再读，比整段一口气念自然得多 */
+function speakParagraph(text) {
+  if (!text) return;
+  if (!S.speakOn) { S.speakOn = true; $("#btnSpeak").textContent = "🔊 朗读"; }
+  const parts = String(text).split(/(?<=[。！？；])/).map(s => s.trim()).filter(Boolean);
+  speakSeq(parts.length ? parts : [text]);
+}
+
+function speak(text) { speakSeq([text]); }
 
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -691,7 +783,9 @@ async function showNode(id) {
       ${n.successors.map(p => `<div class="kv"><span>○ ${esc(p.name)}</span></div>`).join("") || '<div class="empty-s">无</div>'}
       <div class="divider"></div>
       <div style="font-size:10.5px;color:var(--ink2);line-height:1.75">${esc(n.summary)}</div>
-      <button class="bt p" style="margin-top:auto;justify-content:center" id="sideStart">开始讲解</button>`;
+      <button class="bt" style="margin-top:auto;justify-content:center" id="sideRef">阅读知识点</button>
+      <button class="bt p" style="margin-top:7px;justify-content:center" id="sideStart">开始讲解</button>`;
+    $("#sideRef").onclick = () => { S.ref = n.id; go("ref"); };
     $("#sideStart").onclick = () => startSession(n.id);
   } catch (e) { $("#mapSide").innerHTML = `<div class="empty-s">${esc(e.message)}</div>`; }
 }
@@ -763,6 +857,42 @@ async function renderReview() {
     $$("#reviewBody [data-node]").forEach(b => b.onclick = () => startSession(b.dataset.node));
     $("#btnReviewStart").onclick = () => due[0] ? startSession(due[0].node_id) : go("map");
   } catch (e) { $("#reviewBody").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; }
+}
+
+/* ---------------- 知识点参考 ---------------- */
+async function renderRef() {
+  const id = S.ref || (S.session && S.session.node && S.session.node.id) || (S.boot && S.boot.pick && S.boot.pick.id);
+  if (!id) { $("#refBody").innerHTML = `<div class="empty">没有可显示的知识点。</div>`; return; }
+  try {
+    const n = await api.get("/api/node/" + id);
+    S.refNode = n;
+    $("#refEyebrow").textContent = `${n.grade} · ${n.chapter}`;
+    $("#refTitle").textContent = n.name;
+    $("#btnRefSpeak").onclick = () => speakParagraph(n.reference);
+    $("#btnRefStart").onclick = () => startSession(n.id);
+    $("#refBody").innerHTML = `
+      <div class="c refcard">
+        <div class="ct">标准讲解<span class="more">${n.reference.length} 字 · 点右上角可以朗读</span></div>
+        <div class="reftext">${esc(n.reference)}</div>
+        <div class="refex"><b style="color:var(--green)">举个例子：</b>${esc(n.example)}</div>
+      </div>
+      <div class="ref2">
+        <div class="c">
+          <div class="ct">必须讲到的点<span class="more">${n.assertions.length} 条</span></div>
+          <ul class="reflist">
+            ${n.assertions.map(a => `<li>${esc(a.text)}<b>权重 ${a.w.toFixed(1)}</b></li>`).join("")}
+          </ul>
+        </div>
+        <div class="c">
+          <div class="ct">常见错误<span class="more">${n.misconceptions.length} 条</span></div>
+          ${n.misconceptions.map(m => `<div class="misrow">
+            <div class="mt">✕ ${esc(m.title)}</div>
+            <div class="mc">${esc(m.correction)}</div></div>`).join("") || '<div class="empty-s">这个知识点暂未收录常见错误</div>'}
+        </div>
+      </div>`;
+  } catch (e) {
+    $("#refBody").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`;
+  }
 }
 
 /* ---------------------------------------------------------------- 成长 */

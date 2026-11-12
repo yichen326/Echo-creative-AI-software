@@ -63,6 +63,10 @@ class AnswerReq(BaseModel):
     student_id: str = store.DEMO_STUDENT
 
 
+class SkipReq(BaseModel):
+    session_id: str
+
+
 # ------------------------------------------------------------------ 工具
 def mastery_of(sid):
     return Mastery(KB.nodes.keys(), prior=store.get_mastery(sid))
@@ -211,8 +215,13 @@ def node(nid: str, student_id: str = store.DEMO_STUDENT):
     d["status"] = status_of(d["mastery"])
     d["assertions"] = [{"id": a["id"], "text": a["text"], "w": a["w"]}
                        for a in KB.assertions_of(nid)]
-    d["misconceptions"] = [{"id": x["id"], "title": x["title"]} for x in KB.mis_by_node.get(nid, [])]
+    d["reference"] = KB.nodes[nid].get("reference", "")
+    d["misconceptions"] = [{"id": x["id"], "title": x["title"], "type": x["type"],
+                            "correction": x["correction"]}
+                           for x in KB.mis_by_node.get(nid, [])]
     d["example"] = diagnose.NODE_EXAMPLE.get(nid, "")
+    d["probes"] = [{"id": p["id"], "q": p["q"], "why": p.get("why", "")}
+                   for p in KB.probes_by_node.get(nid, [])]
     return d
 
 
@@ -249,14 +258,24 @@ def _live(sid, text, student_id, want_probe=True):
     m = mastery_of(student_id)
     r = diagnose.analyze(KB, text, st["node"], m, asked_ids=st["asked"])
     hint = None
-    if want_probe and r["probes"] and st["utter"] % 2 == 1:
+    if want_probe and r["probes"] and not st.get("pending_probe"):
         p = r["probes"][0]
         if p["id"] not in st["asked"]:
             st["asked"].append(p["id"])
             store.add_asked(sid, p["id"])
             hint = p
             st["last_probe"] = p
+            if p.get("kind") != "hint":
+                st["pending_probe"] = p["id"]
     return r, hint
+
+
+@app.post("/api/session/skip")
+def session_skip(req: SkipReq):
+    st = SESSIONS.get(req.session_id)
+    if st:
+        st.pop("pending_probe", None)
+    return {"ok": True}
 
 
 @app.post("/api/session/answer")
@@ -301,6 +320,7 @@ def session_answer(req: AnswerReq):
            "verdict": verdict, "feedback": feedback, "rate": round(rate, 2)}
     st.setdefault("qa", []).append(rec)
     st.pop("last_probe", None)
+    st.pop("pending_probe", None)
 
     # 答错时再补一个探针，答对就让学生继续讲
     nxt = None

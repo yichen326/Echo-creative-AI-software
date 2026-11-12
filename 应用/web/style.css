@@ -129,13 +129,18 @@ a{color:inherit;text-decoration:none}
 .ctl-r{margin-left:auto;display:flex;gap:8px}
 .rail{display:flex;flex-direction:column;gap:11px}
 .dialogc{display:flex;flex-direction:column}
-.chat{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:430px;overflow-y:auto;padding-right:2px;scroll-behavior:smooth}
+.chat{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:390px;overflow-y:auto;padding:2px 2px 0 0;scroll-behavior:smooth}
+.chat-tools{display:flex;gap:6px;margin-top:9px}
+.chat-tools select{flex:1;min-width:0}
 .msg{font-size:11.5px;line-height:1.65;padding:9px 11px;border-radius:12px;max-width:94%;word-break:break-word}
 .msg.ai{background:#fff;border:1px solid var(--line);border-radius:12px 12px 12px 3px;color:var(--ink2);animation:pop .3s ease}
 .msg.me{align-self:flex-end;background:var(--gs);border:1px solid #D3E2D9;color:var(--green);border-radius:12px 12px 3px 12px}
 .msg.sys{align-self:center;background:none;color:var(--ink3);font-size:10px;padding:2px}
 .msg .vd{font-size:9px;margin-top:6px;display:flex;gap:6px;align-items:center}
-.msg .rd{float:right;margin-left:8px;border:0;background:none;color:#B0A897;font-size:11px;cursor:pointer;padding:0 2px}
+.msg.ai{position:relative;padding-right:26px}
+.msg .lead{font-size:10.5px;color:var(--ink3);margin-bottom:7px;line-height:1.65}
+.msg .qtext{font-size:12px;color:var(--ink);font-weight:600;line-height:1.65}
+.msg .rd{position:absolute;right:6px;top:5px;border:0;background:none;color:#C0B8A8;font-size:11px;cursor:pointer;padding:0 2px;line-height:1}
 .msg .rd:hover{color:var(--green)}
 .answer-box{margin-top:10px;border-top:1px dashed var(--line2);padding-top:10px}
 .answer-box textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:var(--sans);font-size:12px;line-height:1.6;resize:none;outline:none;background:#FCFBF8}
@@ -143,9 +148,24 @@ a{color:inherit;text-decoration:none}
 .ans-row{display:flex;gap:7px;margin-top:7px}
 .mini{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;font-size:10px;color:var(--ink2)}
 .mini:hover{border-color:#D6CDBC;color:var(--green)}
+select.mini{max-width:104px;padding:3px 4px}
 .hidden{display:none}
 .chipbar{margin-top:12px}
 .probes{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+
+/* ---------------- 知识点参考 ---------------- */
+.refcard .reftext{font-family:var(--serif);font-size:15px;line-height:2.05;margin-top:12px;color:var(--ink);letter-spacing:.3px}
+.refex{margin-top:14px;background:var(--paper);border-radius:10px;padding:11px 13px;font-size:11.5px;color:var(--ink2);line-height:1.8}
+.reflist{margin:10px 0 0 0;padding:0;list-style:none;counter-reset:rf}
+.reflist li{position:relative;padding:7px 0 7px 26px;border-bottom:1px dashed var(--line2);font-size:12px;line-height:1.75}
+.reflist li:last-child{border-bottom:0}
+.reflist li:before{counter-increment:rf;content:counter(rf);position:absolute;left:0;top:8px;width:17px;height:17px;border-radius:50%;background:var(--gs);color:var(--green);font-size:9px;display:flex;align-items:center;justify-content:center}
+.reflist li b{font-size:9.5px;color:var(--ink3);margin-left:8px;font-weight:400}
+.misrow{border-left:3px solid var(--rs);padding:9px 13px;margin-top:9px;background:#FDFAF8;border-radius:0 8px 8px 0}
+.misrow .mt{font-size:12px;color:var(--red);font-weight:600}
+.misrow .mc{font-size:11px;color:var(--ink2);margin-top:5px;line-height:1.75}
+.ref2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media (max-width:900px){.ref2{grid-template-columns:1fr}}
 .bub{background:#fff;border:1px solid var(--line);border-radius:12px 12px 12px 3px;padding:10px 12px;font-size:11.5px;line-height:1.65;color:var(--ink2);animation:pop .35s ease}
 @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 .bub .bst{font-size:9px;color:var(--ink3);margin-top:7px;display:flex;gap:6px;align-items:center}
