@@ -6,6 +6,8 @@
 """
 import os
 import sys
+import traceback
+from datetime import datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "vendor"))
@@ -22,11 +24,26 @@ MISSING_HINT = """
 装好后重新运行 python run.py
 """
 
+LOG_DIR = os.path.join(HERE, "logs")
+LOG_FILE = os.path.join(LOG_DIR, "echo.log")
+
+
+def _log(msg):
+    """崩溃也要留下痕迹——静默退出最难排查。"""
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write("[%s] %s\n" % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), msg))
+    except Exception:
+        pass
+
+
 for mod in ("fastapi", "uvicorn"):
     try:
         __import__(mod)
     except ImportError:
         print(MISSING_HINT.format(mod=mod))
+        _log("missing dependency: %s (python=%s)" % (mod, sys.executable))
         sys.exit(1)
 
 from server import app  # noqa: E402
@@ -35,4 +52,12 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("ECHO_PORT", "8771"))
     print("\n  回声 Echo  ->  http://127.0.0.1:%d\n" % port)
-    uvicorn.run(app, host="127.0.0.1", port=port, log_level="warning")
+    _log("start port=%d python=%s" % (port, sys.executable))
+    try:
+        uvicorn.run(app, host="127.0.0.1", port=port, log_level="warning")
+        _log("stopped normally")
+    except KeyboardInterrupt:
+        _log("stopped by Ctrl+C")
+    except BaseException:
+        _log("crashed:\n" + traceback.format_exc())
+        raise
